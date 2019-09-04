@@ -615,6 +615,7 @@ public abstract class AbstractConferenceToolkitController implements VoxeetOverl
 
         Activity activity = VoxeetToolkit.getInstance().getCurrentActivity();
 
+
         if (activity != null && validFilter(event.conference.getId())) {
             if (mMainView == null) init();
 
@@ -655,7 +656,7 @@ public abstract class AbstractConferenceToolkitController implements VoxeetOverl
      */
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(@NonNull ConferenceJoinedSuccessEvent event) {
-        if (validFilter(event.conferenceId) || validFilter(event.conferenceAlias)) {
+        if (validFilter(event.getConferenceId()) || validFilter(event.getAliasId())) {
             VoxeetSdk.audio().setAudioRoute(AudioRoute.ROUTE_SPEAKER);
 
             displayView();
@@ -667,7 +668,7 @@ public abstract class AbstractConferenceToolkitController implements VoxeetOverl
             }
 
             if (mMainView != null) {
-                mMainView.onConferenceJoined(event.conferenceId);
+                mMainView.onConferenceJoined(event.getConferenceId());
             }
         }
     }
@@ -690,8 +691,8 @@ public abstract class AbstractConferenceToolkitController implements VoxeetOverl
 
         if (mMainView == null) init();
 
-        if (validFilter(event.conferenceId) || validFilter(event.conferenceAlias)) {
-            mMainView.onConferenceCreation(event.conferenceId);
+        if (validFilter(event.getConfId()) || validFilter(event.getConfAlias())) {
+            mMainView.onConferenceCreation(event.getConfId());
         }
     }
 
@@ -714,6 +715,7 @@ public abstract class AbstractConferenceToolkitController implements VoxeetOverl
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(final UserUpdatedEvent event) {
         checkStopOutgoingCall();
+
 
         log("onEvent: UserUpdatedEvent " + event);
         User user = event.user;
@@ -768,14 +770,14 @@ public abstract class AbstractConferenceToolkitController implements VoxeetOverl
             List<User> users = getConferenceUsers();
             while (i < users.size()) {
                 user = users.get(i);
-                if (user.getId() != null && user.getId().equals(event.userId)) {
+                if (user.getId() != null && user.getId().equals(event.getUserId())) {
                     users.remove(i);
                     mMainView.onConferenceUsersListUpdate(users);
                 } else {
                     i++;
                 }
             }
-            mMainView.onConferenceUserDeclined(event.userId);
+            mMainView.onConferenceUserDeclined(event.getUserId());
         }
     }
 

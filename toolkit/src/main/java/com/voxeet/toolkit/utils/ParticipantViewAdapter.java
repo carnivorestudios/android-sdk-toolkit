@@ -16,6 +16,7 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 import com.voxeet.android.media.MediaStream;
+import com.voxeet.android.media.MediaStreamType;
 import com.voxeet.sdk.core.VoxeetSdk;
 import com.voxeet.sdk.models.User;
 import com.voxeet.sdk.models.v1.ConferenceUserStatus;
@@ -26,9 +27,7 @@ import com.voxeet.toolkit.views.internal.rounded.RoundedImageView;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class ParticipantViewAdapter extends RecyclerView.Adapter<ParticipantViewAdapter.ViewHolder> {
 
@@ -74,19 +73,6 @@ public class ParticipantViewAdapter extends RecyclerView.Adapter<ParticipantView
         this.avatarSize = context.getResources().getDimensionPixelSize(R.dimen.meeting_list_avatar_double);
     }
 
-    /**
-     * Removes the conference user if being part of the conference.
-     *
-     * @param conferenceUser the conference user
-     */
-    public void removeUser(User conferenceUser) {
-        if (users.contains(conferenceUser))
-            users.remove(conferenceUser);
-
-        filter();
-        sort();
-    }
-
     public void updateUsers() {
         filter();
         sort();
@@ -95,13 +81,21 @@ public class ParticipantViewAdapter extends RecyclerView.Adapter<ParticipantView
     }
 
     /**
-     * Adds the conference user if not already added.
+     * Set the corresponding users
      *
-     * @param conferenceUser the conference user
+     * @param users the list of user to populate the adapter
      */
-    public void addUser(User conferenceUser) {
-        if (!users.contains(conferenceUser))
-            users.add(conferenceUser);
+    public void setUsers(List<User> users) {
+        for (User user : users) {
+            if (!this.users.contains(user))
+                this.users.add(user);
+        }
+
+        List<User> to_remove = new ArrayList<>();
+        for (User user : this.users) {
+            if (!users.contains(user)) to_remove.add(user);
+        }
+        this.users.removeAll(to_remove);
 
         filter();
         sort();
@@ -335,31 +329,16 @@ public class ParticipantViewAdapter extends RecyclerView.Adapter<ParticipantView
     }
 
     /**
-     * On media stream updated. Needs to call notifyDataSetChanged to refresh the videos.
-     *
-     * @param mediaStreams the media streams
+     * @param user
      */
-    public void onMediaStreamUpdated(@Nullable String userId, @NonNull Map<String, MediaStream> mediaStreams) {
-        //mMediaStreamMap = mediaStreams;
-        if (null != userId && mediaStreams.containsKey(userId)) {
-            MediaStream stream = mediaStreams.get(userId);
-            if (null != stream && stream.videoTracks().size() > 0) {
-                mRequestUserIdChanged = userId;
-            }
+    public void onMediaStreamUpdated(@Nullable User user) {
+        //removed unecessary change of current selected it
+        /*
+        MediaStream stream = user.streamsHandler().getFirst(MediaStreamType.Camera);
+        if (null != stream && stream.videoTracks().size() > 0) {
+            mRequestUserIdChanged = user.getId();
         }
-
-        notifyDataSetChanged();
-    }
-
-    public void onScreenShareMediaStreamUpdated(String userId, Map<String, MediaStream> screenSharemediaStreams) {
-        //mScreenShareMediaStreams = screenSharemediaStreams;
-
-        if (screenSharemediaStreams.containsKey(userId)) {
-            MediaStream stream = screenSharemediaStreams.get(userId);
-            if (null != stream && stream.isScreenShare()) {
-                mRequestUserIdChanged = userId;
-            }
-        }
+        */
 
         notifyDataSetChanged();
     }
@@ -416,8 +395,7 @@ public class ParticipantViewAdapter extends RecyclerView.Adapter<ParticipantView
 
     @Nullable
     private MediaStream getMediaStream(@Nullable String userId) {
-        if (null == userId) return null;
-        HashMap<String, MediaStream> streams = VoxeetSdk.conference().getMapOfStreams();
-        return streams.containsKey(userId) ? streams.get(userId) : null;
+        User user = VoxeetSdk.conference().findUserById(userId);
+        return null != user ? user.streamsHandler().getFirst(MediaStreamType.Camera) : null;
     }
 }

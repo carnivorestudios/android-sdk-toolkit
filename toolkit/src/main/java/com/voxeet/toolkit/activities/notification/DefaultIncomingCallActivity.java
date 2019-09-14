@@ -152,7 +152,7 @@ public class DefaultIncomingCallActivity extends AppCompatActivity implements In
         isResumed = true;
 
         boolean useRingtone = false;
-                //"true".equals(AndroidManifest.readMetadata(this, "voxeet_use_ringtone", "false"));
+                //"true".equals(AndroidManifest.readMetadata(this, "voxeet_use_ringtone", "true"));
         SoundManager soundManager = AudioService.getSoundManager();
 
         if (null != soundManager) {
@@ -252,7 +252,7 @@ public class DefaultIncomingCallActivity extends AppCompatActivity implements In
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(ConferencePreJoinedEvent event) {
-        if (mIncomingBundleChecker.isSameConference(event.getConferenceId())) {
+        if (mIncomingBundleChecker.isSameConference(event.conference.getId())) {
             finish();
         }
     }

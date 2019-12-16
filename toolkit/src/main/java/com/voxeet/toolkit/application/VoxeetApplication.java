@@ -3,11 +3,11 @@ package com.voxeet.toolkit.application;
 import android.app.Application;
 import android.support.annotation.NonNull;
 
-import com.voxeet.sdk.core.VoxeetSdk;
-import com.voxeet.sdk.core.preferences.VoxeetPreferences;
+import com.voxeet.sdk.VoxeetSdk;
 import com.voxeet.sdk.json.UserInfo;
+import com.voxeet.sdk.preferences.VoxeetPreferences;
 import com.voxeet.sdk.utils.Annotate;
-import com.voxeet.toolkit.utils.EventDebugger;
+import com.voxeet.sdk.utils.NoDocumentation;
 
 import eu.codlab.simplepromise.Promise;
 import eu.codlab.simplepromise.solve.PromiseSolver;
@@ -20,22 +20,9 @@ import eu.codlab.simplepromise.solve.Solver;
 @Annotate
 public abstract class VoxeetApplication extends Application {
 
-
-    private EventDebugger eventDebugger;
-
-    @Override
-    public void onCreate() {
-        super.onCreate();
-
-        eventDebugger = new EventDebugger();
-    }
-
-    public void enableLogs() {
-        eventDebugger.register();
-    }
-
-    public void disableLogs() {
-        eventDebugger.unregister();
+    @NoDocumentation
+    public VoxeetApplication() {
+        super();
     }
 
     /**
@@ -86,6 +73,11 @@ public abstract class VoxeetApplication extends Application {
         });
     }
 
+    /**
+     * Check if the SDK knows a default user. Useful to auto connect users
+     *
+     * @return the existence of an user that has been logged in but not logged out in the past
+     */
     public boolean hasDefaultUser() {
         UserInfo savedUserInfo = VoxeetPreferences.getSavedUserInfo();
         return null != savedUserInfo;
@@ -106,7 +98,7 @@ public abstract class VoxeetApplication extends Application {
         //TODO append the current 'solver' in a list and call logUserWithChain if no solver existed
         UserInfo userInfos = VoxeetPreferences.getSavedUserInfo();
         if (null != userInfos)
-            return VoxeetSdk.user().login(userInfos);
+            return VoxeetSdk.session().open(userInfos);
         return new Promise<>(new PromiseSolver<Boolean>() {
             @Override
             public void onCall(@NonNull Solver<Boolean> solver) {

@@ -7,15 +7,15 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
-import com.voxeet.sdk.core.VoxeetSdk;
-import com.voxeet.sdk.core.preferences.VoxeetPreferences;
-import com.voxeet.sdk.events.restapi.GetConferenceStatusResult;
-import com.voxeet.sdk.factories.VoxeetIntentFactory;
 import com.voxeet.sdk.json.UserInfo;
 import com.voxeet.sdk.models.v1.ConferenceUser;
+import com.voxeet.push.center.management.Constants;
+import com.voxeet.sdk.VoxeetSdk;
+import com.voxeet.sdk.models.Conference;
+import com.voxeet.sdk.preferences.VoxeetPreferences;
 import com.voxeet.sdk.utils.AndroidManifest;
-import com.voxeet.toolkit.activities.VoxeetAppCompatActivity;
-import com.voxeet.toolkit.controllers.VoxeetToolkit;
+import com.voxeet.toolkit.incoming.factory.IVoxeetActivity;
+import com.voxeet.toolkit.incoming.factory.IncomingCallFactory;
 
 import java.util.List;
 import java.util.Objects;
@@ -61,11 +61,11 @@ public class IncomingBundleChecker {
         mFillerListener = filler_listener;
         mIntent = intent;
 
-        mUserName = mIntent.getStringExtra(VoxeetIntentFactory.INVITER_NAME);
-        mExternalUserId = mIntent.getStringExtra(VoxeetIntentFactory.INVITER_EXTERNAL_ID);
-        mUserId = mIntent.getStringExtra(VoxeetIntentFactory.INVITER_ID);
-        mAvatarUrl = mIntent.getStringExtra(VoxeetIntentFactory.INVITER_URL);
-        mConferenceId = mIntent.getStringExtra(VoxeetIntentFactory.CONF_ID);
+        mUserName = mIntent.getStringExtra(Constants.INVITER_NAME);
+        mExternalUserId = mIntent.getStringExtra(Constants.INVITER_EXTERNAL_ID);
+        mUserId = mIntent.getStringExtra(Constants.INVITER_ID);
+        mAvatarUrl = mIntent.getStringExtra(Constants.INVITER_URL);
+        mConferenceId = mIntent.getStringExtra(Constants.CONF_ID);
     }
 
     /**
@@ -82,27 +82,25 @@ public class IncomingBundleChecker {
 
             Log.d(TAG, "onAccept: mConferenceId := " + mConferenceId);
             //join the conference
-            Promise<Boolean> join = VoxeetToolkit.getInstance()
-                    .getConferenceToolkit()
-                    .joinUsingConferenceId(mConferenceId, info);
+            Promise<Conference> join = VoxeetSdk.conference().join(mConferenceId);
             //only when error() is called
 
-            Log.d(TAG, "onAccept: isSocketOpen := " + VoxeetSdk.user().isSocketOpen());
-            if (!VoxeetSdk.user().isSocketOpen()) {
+            Log.d(TAG, "onAccept: isSocketOpen := " + VoxeetSdk.session().isSocketOpen());
+            if (!VoxeetSdk.session().isSocketOpen()) {
                 UserInfo userInfo = VoxeetPreferences.getSavedUserInfo();
 
                 if (null != userInfo) {
-                    VoxeetSdk.user().login(userInfo)
-                            .then(new PromiseExec<Boolean, Boolean>() {
+                    VoxeetSdk.session().open(userInfo)
+                            .then(new PromiseExec<Boolean, Conference>() {
                                 @Override
-                                public void onCall(@Nullable Boolean result, @NonNull Solver<Boolean> solver) {
+                                public void onCall(@Nullable Boolean result, @NonNull Solver<Conference> solver) {
                                     Log.d(TAG, "onCall: log user info := " + result);
                                     solver.resolve(join);
                                 }
                             })
-                            .then(new PromiseExec<Boolean, Object>() {
+                            .then(new PromiseExec<Conference, Object>() {
                                 @Override
-                                public void onCall(@Nullable Boolean result, @NonNull Solver<Object> solver) {
+                                public void onCall(@Nullable Conference result, @NonNull Solver<Object> solver) {
                                     Log.d(TAG, "onCall: join conference := " + result);
                                 }
                             })
@@ -134,7 +132,7 @@ public class IncomingBundleChecker {
                         })
                         .error(new ErrorPromise() {
                             @Override
-                            public void onError(Throwable error) {
+                            public void onError(@NonNull Throwable error) {
                                 error.printStackTrace();
                             }
                         });
@@ -213,11 +211,11 @@ public class IncomingBundleChecker {
      * @return true if the intent has notification keys
      */
     final public boolean isBundleValid() {
-        return null != mIntent && mIntent.hasExtra(VoxeetIntentFactory.INVITER_NAME)
-                && mIntent.hasExtra(VoxeetIntentFactory.INVITER_EXTERNAL_ID)
-                && mIntent.hasExtra(VoxeetIntentFactory.INVITER_ID)
-                && mIntent.hasExtra(VoxeetIntentFactory.INVITER_URL)
-                && mIntent.hasExtra(VoxeetIntentFactory.CONF_ID);
+        return null != mIntent && mIntent.hasExtra(Constants.INVITER_NAME)
+                && mIntent.hasExtra(Constants.INVITER_EXTERNAL_ID)
+                && mIntent.hasExtra(Constants.INVITER_ID)
+                //&& mIntent.hasExtra(Constants.INVITER_URL)
+                && mIntent.hasExtra(Constants.CONF_ID);
     }
 
     @Nullable
@@ -263,13 +261,13 @@ public class IncomingBundleChecker {
      */
     @NonNull
     final public Intent createActivityAccepted(@NonNull Activity caller) {
-        Class<? extends VoxeetAppCompatActivity> klass = IncomingCallFactory.getAcceptedIncomingActivityKlass();
+        Class<? extends IVoxeetActivity> klass = IncomingCallFactory.getAcceptedIncomingActivityKlass();
         if (null == klass) {
             Log.d(TAG, "createActivityAccepted: no klass defined ! we'll now try to load from the AndroidManifest");
             String klass_fully_qualified = AndroidManifest.readMetadata(caller, "voxeet_incoming_accepted_class", null);
             if (null != klass_fully_qualified) {
                 try {
-                    klass = (Class<? extends VoxeetAppCompatActivity>) Class.forName(klass_fully_qualified);
+                    klass = (Class<? extends IVoxeetActivity>) Class.forName(klass_fully_qualified);
                 } catch (ClassNotFoundException e) {
                     Log.d(TAG, "createActivityAccepted: ERROR !! IS THE KLASS VALID AND INHERITING VoxeetAppCompatActivity");
                     e.printStackTrace();
@@ -290,11 +288,11 @@ public class IncomingBundleChecker {
 
         intent.putExtra(BUNDLE_EXTRA_BUNDLE, createExtraBundle());
 
-        intent.putExtra(VoxeetIntentFactory.CONF_ID, getConferenceId())
-                .putExtra(VoxeetIntentFactory.INVITER_NAME, getUserName())
-                .putExtra(VoxeetIntentFactory.INVITER_ID, getExternalUserId())
-                .putExtra(VoxeetIntentFactory.INVITER_EXTERNAL_ID, getExternalUserId())
-                .putExtra(VoxeetIntentFactory.INVITER_URL, getAvatarUrl());
+        intent.putExtra(Constants.CONF_ID, getConferenceId())
+                .putExtra(Constants.INVITER_NAME, getUserName())
+                .putExtra(Constants.INVITER_ID, getExternalUserId())
+                .putExtra(Constants.INVITER_EXTERNAL_ID, getExternalUserId())
+                .putExtra(Constants.INVITER_URL, getAvatarUrl());
 
         //deprecated
         intent.putExtra("join", true);
@@ -312,11 +310,11 @@ public class IncomingBundleChecker {
      * in onResume/onPause lifecycle
      */
     public void flushIntent() {
-        mIntent.removeExtra(VoxeetIntentFactory.INVITER_ID);
-        mIntent.removeExtra(VoxeetIntentFactory.INVITER_EXTERNAL_ID);
-        mIntent.removeExtra(VoxeetIntentFactory.CONF_ID);
-        mIntent.removeExtra(VoxeetIntentFactory.INVITER_URL);
-        mIntent.removeExtra(VoxeetIntentFactory.INVITER_NAME);
+        mIntent.removeExtra(Constants.INVITER_ID);
+        mIntent.removeExtra(Constants.INVITER_EXTERNAL_ID);
+        mIntent.removeExtra(Constants.CONF_ID);
+        mIntent.removeExtra(Constants.INVITER_URL);
+        mIntent.removeExtra(Constants.INVITER_NAME);
     }
 
     @NonNull

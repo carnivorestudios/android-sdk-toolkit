@@ -15,7 +15,7 @@ android {
     compileSdkVersion rootProject.ext.compileSdkVersion
 
     defaultConfig {
-        applicationId "fr.voxeet.sdk.sample"
+        applicationId "com.voxeet.sdk.sample"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         multiDexEnabled true
@@ -60,6 +60,8 @@ android {
 
 dependencies {
     api project(':toolkit')
+    api project(':toolkit-youtube')
+    api project(':toolkit-exoplayer-support')
 
     testImplementation 'junit:junit:4.12'
 

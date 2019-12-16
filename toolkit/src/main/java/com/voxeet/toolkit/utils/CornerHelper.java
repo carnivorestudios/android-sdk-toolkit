@@ -11,10 +11,6 @@ import com.voxeet.sdk.utils.ScreenHelper;
 import com.voxeet.toolkit.R;
 import com.voxeet.toolkit.implementation.VoxeetView;
 
-/**
- * Created by kevinleperf on 15/01/2018.
- */
-
 public class CornerHelper {
 
     private static final Handler mHandler = new Handler(Looper.getMainLooper());
@@ -43,7 +39,7 @@ public class CornerHelper {
         int right = display.getWidth();
 
         mCornerMargin = (int) view.getContext().getResources().getDimension(R.dimen.voxeet_overlay_margin);
-        if(mCornerMargin < 0) mCornerMargin = 0;
+        if (mCornerMargin < 0) mCornerMargin = 0;
 
         Point topLeft = new Point(left, top);
         Point topRight = new Point(right, top);

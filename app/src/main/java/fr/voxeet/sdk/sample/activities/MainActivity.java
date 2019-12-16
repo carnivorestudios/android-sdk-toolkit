@@ -12,33 +12,32 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
-import com.voxeet.sdk.core.VoxeetSdk;
-import com.voxeet.sdk.core.preferences.VoxeetPreferences;
-import com.voxeet.sdk.events.sdk.SocketConnectEvent;
+import com.voxeet.sdk.VoxeetSdk;
+import com.voxeet.sdk.events.sdk.ConferenceStateEvent;
 import com.voxeet.sdk.events.sdk.SocketStateChangeEvent;
 import com.voxeet.sdk.json.UserInfo;
-import com.voxeet.sdk.json.internal.MetadataHolder;
+import com.voxeet.sdk.models.v1.CreateConferenceResult;
+import com.voxeet.sdk.sample.R;
+import com.voxeet.sdk.services.ConferenceService;
+import com.voxeet.sdk.services.SessionService;
 import com.voxeet.toolkit.activities.VoxeetAppCompatActivity;
 import com.voxeet.toolkit.controllers.VoxeetToolkit;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
-import org.webrtc.CodecDescriptorFactory;
-import org.webrtc.MediaCodecVideoHelperFactory;
-import org.webrtc.VideoCodecType;
 
 import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import eu.codlab.simplepromise.Promise;
+import eu.codlab.simplepromise.PromiseInOut;
 import eu.codlab.simplepromise.solve.ErrorPromise;
 import eu.codlab.simplepromise.solve.PromiseExec;
 import eu.codlab.simplepromise.solve.Solver;
-import fr.voxeet.sdk.sample.R;
 import fr.voxeet.sdk.sample.application.SampleApplication;
 import fr.voxeet.sdk.sample.main_screen.UserAdapter;
 import fr.voxeet.sdk.sample.main_screen.UserItem;
@@ -81,7 +80,7 @@ public class MainActivity extends VoxeetAppCompatActivity implements UserAdapter
 
         users.setAdapter(new UserAdapter(this, UsersHelper.USER_ITEMS));
 
-        if(null != force_test_overlay_switch) {
+        if (null != force_test_overlay_switch) {
             force_test_overlay_switch.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -98,7 +97,8 @@ public class MainActivity extends VoxeetAppCompatActivity implements UserAdapter
 
     @OnClick(R.id.disconnect)
     public void onDisconnectClick() {
-        VoxeetSdk.user().logout()
+        SessionService userService = VoxeetSdk.session();
+        if (null != userService) userService.close()
                 .then(defaultConsume())
                 .error(createErrorDump());
     }
@@ -106,15 +106,12 @@ public class MainActivity extends VoxeetAppCompatActivity implements UserAdapter
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            String[] permissions, int[] grantResults) {
-        switch (requestCode) {
-            case RECORD_AUDIO_RESULT: {
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    joinCall();
-                }
-                return;
+        if (requestCode == RECORD_AUDIO_RESULT) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                joinCall();
             }
-            default:
-                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        } else {
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }
     }
 
@@ -129,8 +126,8 @@ public class MainActivity extends VoxeetAppCompatActivity implements UserAdapter
 
     @Override
     public void onBackPressed() {
-        if (null != VoxeetSdk.getInstance() && VoxeetSdk.getInstance().getConferenceService().isLive()) {
-            VoxeetSdk.getInstance().getConferenceService().leave()
+        if (null != VoxeetSdk.conference() && VoxeetSdk.conference().isLive()) {
+            VoxeetSdk.conference().leave()
                     .then(defaultConsume())
                     .error(createErrorDump());
         } else {
@@ -151,17 +148,37 @@ public class MainActivity extends VoxeetAppCompatActivity implements UserAdapter
 
             VoxeetToolkit.getInstance().enable(VoxeetToolkit.getInstance().getConferenceToolkit());
 
-            Promise<Boolean> promise = VoxeetToolkit.getInstance().getConferenceToolkit().join(conferenceAlias);
+            ConferenceService service = VoxeetSdk.conference();
 
-            if (VoxeetSdk.getInstance().getConferenceService().isLive()) {
-                VoxeetSdk.getInstance().getConferenceService()
+            if (null == service) {
+                Toast.makeText(this, "Invalid state of the SDK !", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            PromiseInOut<CreateConferenceResult, Object> create = service.create(conferenceAlias)
+                    .then(new PromiseExec<CreateConferenceResult, Object>() {
+                        @Override
+                        public void onCall(@Nullable CreateConferenceResult result, @NonNull Solver<Object> solver) {
+                            try {
+                                String conferenceId = null != result ? result.conferenceId : null;
+                                if (null == conferenceId)
+                                    throw new NullPointerException("ConferenceId null");
+                                solver.resolve(service.join(conferenceId));
+                            } catch (Exception e) {
+                                solver.reject(e);
+                            }
+                        }
+                    });
+
+            if (VoxeetSdk.conference().isLive()) {
+                VoxeetSdk.conference()
                         .leave()
-                        .then(promise)
+                        .then(create)
                         //.then(VoxeetSdk.conference().startVideo())
                         .then(defaultConsume())
                         .error(createErrorDump());
             } else {
-                promise//.then(VoxeetSdk.conference().startVideo())
+                create//.then(VoxeetSdk.conference().startVideo())
                         .then(defaultConsume())
                         .error(createErrorDump());
             }
@@ -169,41 +186,47 @@ public class MainActivity extends VoxeetAppCompatActivity implements UserAdapter
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onEvent(final SocketConnectEvent event) {
-        Log.d("MainActivity", "SocketConnectEvent" + event.message());
-        joinConf.setEnabled(true);
-        disconnect.setVisibility(View.VISIBLE);
-
-        //TODO resume select the current logged user
-        ((UserAdapter) users.getAdapter()).setSelected(_application.getCurrentUser());
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(SocketStateChangeEvent event) {
-        Log.d("MainActivity", "SocketStateChangeEvent " + event.message());
+        UserAdapter adapter = (UserAdapter) users.getAdapter();
+        switch (event.state) {
+            case CONNECTED:
+                joinConf.setEnabled(true);
+                disconnect.setVisibility(View.VISIBLE);
 
-        switch (event.message()) {
-            case "CLOSING":
-            case "CLOSED":
+                if (null != adapter) adapter.setSelected(_application.getCurrentUser());
+                break;
+            case CLOSING:
+            case CLOSED:
                 joinConf.setEnabled(false);
                 disconnect.setVisibility(View.GONE);
-                ((UserAdapter) users.getAdapter()).reset();
+                if (null != adapter) adapter.reset();
+            default:
         }
     }
 
     @Override
-    protected void onConferenceJoinedSuccessEvent() {
-        List<UserInfo> external_ids = UsersHelper.getExternalIds(VoxeetPreferences.id());
+    protected void onConferenceState(@NonNull ConferenceStateEvent event) {
+        super.onConferenceState(event);
 
-        VoxeetToolkit.getInstance().getConferenceToolkit()
-                .invite(external_ids)
+        switch (event.state) {
+            case JOINED:
+                onConferenceJoinedSuccessEvent();
+        }
+    }
+
+    private void onConferenceJoinedSuccessEvent() {
+        SessionService userService = VoxeetSdk.session();
+        ConferenceService conferenceService = VoxeetSdk.conference();
+
+        if (null == userService || null == conferenceService) {
+            return;
+        }
+
+        List<UserInfo> users = UsersHelper.getExternalIds(userService.getUserId());
+
+        conferenceService.invite(conferenceService.getConferenceId(), users)
                 .then(defaultConsume())
                 .error(createErrorDump());
-
-        /*VoxeetSdk.conference()
-                .startVideo()
-                .then(defaultConsume())
-                .error(createErrorDump());*/
     }
 
     private <TYPE> PromiseExec<TYPE, Object> defaultConsume() {
@@ -218,7 +241,7 @@ public class MainActivity extends VoxeetAppCompatActivity implements UserAdapter
     private ErrorPromise createErrorDump() {
         return new ErrorPromise() {
             @Override
-            public void onError(Throwable error) {
+            public void onError(@NonNull Throwable error) {
                 error.printStackTrace();
             }
         };

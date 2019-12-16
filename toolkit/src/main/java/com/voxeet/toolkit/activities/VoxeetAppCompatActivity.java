@@ -1,24 +1,30 @@
 package com.voxeet.toolkit.activities;
 
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
-import com.voxeet.sdk.core.VoxeetSdk;
-import com.voxeet.sdk.core.services.ScreenShareService;
-import com.voxeet.sdk.core.services.screenshare.RequestScreenSharePermissionEvent;
-import com.voxeet.sdk.events.error.ConferenceJoinedError;
+import com.voxeet.sdk.VoxeetSdk;
 import com.voxeet.sdk.events.error.PermissionRefusedEvent;
-import com.voxeet.sdk.events.sdk.ConferenceJoinedSuccessEvent;
-import com.voxeet.sdk.events.sdk.ConferencePreJoinedEvent;
+import com.voxeet.sdk.events.sdk.ConferenceStateEvent;
+import com.voxeet.sdk.services.screenshare.RequestScreenSharePermissionEvent;
 import com.voxeet.sdk.utils.Annotate;
+import com.voxeet.sdk.utils.NoDocumentation;
 import com.voxeet.sdk.utils.Validate;
 import com.voxeet.toolkit.activities.notification.IncomingBundleChecker;
-import com.voxeet.toolkit.activities.notification.IncomingCallFactory;
 import com.voxeet.toolkit.controllers.VoxeetToolkit;
+import com.voxeet.toolkit.incoming.factory.IVoxeetActivity;
+import com.voxeet.toolkit.incoming.factory.IncomingCallFactory;
+import com.voxeet.toolkit.service.AbstractSDKService;
+import com.voxeet.toolkit.service.SDKBinder;
+import com.voxeet.toolkit.service.SystemServiceFactory;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -41,26 +47,50 @@ import eu.codlab.simplepromise.solve.Solver;
  * - singleTop / singleInstance
  */
 @Annotate
-public class VoxeetAppCompatActivity extends AppCompatActivity implements VoxeetEventCallBack {
-
+public class VoxeetAppCompatActivity extends AppCompatActivity implements IVoxeetActivity {
 
     private static final String TAG = VoxeetAppCompatActivity.class.getSimpleName();
     private IncomingBundleChecker mIncomingBundleChecker;
 
+    @Nullable
+    private AbstractSDKService sdkService;
+
+    @NoDocumentation
+    public VoxeetAppCompatActivity() {
+        super();
+    }
+
+
+    @Nullable
+    public AbstractSDKService getSdkService() {
+        return sdkService;
+    }
+
+    public void onSdkServiceAvailable() {
+        //nothing, override to change
+    }
+
+    @NoDocumentation
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         //create a check incoming call
         mIncomingBundleChecker = new IncomingBundleChecker(getIntent(), null);
+
+        startService();
     }
 
+    @NoDocumentation
     @Override
     protected void onResume() {
         super.onResume();
 
+        SystemServiceFactory.setLastAppCompatActivity(this.getClass());
+        startService();
+
         if (null != VoxeetSdk.instance()) {
-            VoxeetSdk.instance().register( this);
+            VoxeetSdk.instance().register(this);
         }
 
         if (!EventBus.getDefault().isRegistered(this)) {
@@ -81,10 +111,11 @@ public class VoxeetAppCompatActivity extends AppCompatActivity implements Voxeet
         }
 
         if (null != VoxeetToolkit.getInstance() && null != VoxeetToolkit.getInstance().getConferenceToolkit()) {
-            VoxeetToolkit.getInstance().getConferenceToolkit().forceReattach(this);
+            VoxeetToolkit.getInstance().getConferenceToolkit().forceReattach();
         }
     }
 
+    @NoDocumentation
     @Override
     protected void onPause() {
         if (null != VoxeetSdk.localStats()) {
@@ -99,6 +130,7 @@ public class VoxeetAppCompatActivity extends AppCompatActivity implements Voxeet
         super.onPause();
     }
 
+    @NoDocumentation
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
@@ -121,6 +153,7 @@ public class VoxeetAppCompatActivity extends AppCompatActivity implements Voxeet
         }
     }
 
+    @NoDocumentation
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            String[] permissions, int[] grantResults) {
@@ -150,6 +183,7 @@ public class VoxeetAppCompatActivity extends AppCompatActivity implements Voxeet
         }
     }
 
+    @NoDocumentation
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         boolean managed = false;
@@ -172,33 +206,14 @@ public class VoxeetAppCompatActivity extends AppCompatActivity implements Voxeet
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      * Specific event used to manage the current "incoming" call feature
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public final void onEvent(ConferencePreJoinedEvent event) {
-        mIncomingBundleChecker.flushIntent();
-        onConferencePreJoinedEvent();
-    }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public final void onEvent(ConferenceJoinedSuccessEvent event) {
+    public final void onEvent(ConferenceStateEvent event) {
         mIncomingBundleChecker.flushIntent();
-        onConferenceJoinedSuccessEvent();
+        onConferenceState(event);
     }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public final void onEvent(ConferenceJoinedError event) {
-        mIncomingBundleChecker.flushIntent();
-        onConferenceJoinedError();
-    }
-
-    protected void onConferencePreJoinedEvent() {
-
-    }
-
-    protected void onConferenceJoinedSuccessEvent() {
-
-    }
-
-    protected void onConferenceJoinedError() {
+    protected void onConferenceState(@NonNull ConferenceStateEvent event) {
 
     }
 
@@ -230,27 +245,34 @@ public class VoxeetAppCompatActivity extends AppCompatActivity implements Voxeet
         return true;
     }
 
-    @Override
-    public void onConferenceMute(Boolean isMuted) {
+    private void startService() {
+        try {
+            if (SystemServiceFactory.hasSDKServiceClass()) {
+                Intent intent = new Intent(this, SystemServiceFactory.getSDKServiceClass());
+                startService(intent);
+                bindService(intent, sdkConnection, Context.BIND_AUTO_CREATE);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
-    @Override
-    public void onConferenceVideo(Boolean isVideoEnabled) {
+    private ServiceConnection sdkConnection = new ServiceConnection() {
+        public void onServiceConnected(ComponentName className, IBinder binder) {
+            if (binder instanceof SDKBinder) {
+                try {
+                    sdkService = ((SDKBinder) binder).getService();
+                    if (null != sdkService) {
+                        onSdkServiceAvailable();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
 
-    }
-
-    @Override
-    public void onConferenceCallEnded() {
-
-    }
-
-    @Override
-    public void onConferenceMinimized() {
-
-    }
-
-    @Override
-    public void onConferenceSpeakerOn(Boolean isSpeakerOn) {
-
-    }
+        public void onServiceDisconnected(ComponentName className) {
+            sdkService = null;
+        }
+    };
 }

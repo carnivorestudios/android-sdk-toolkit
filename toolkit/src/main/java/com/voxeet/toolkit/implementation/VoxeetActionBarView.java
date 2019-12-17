@@ -2,7 +2,6 @@ package com.voxeet.toolkit.implementation;
 
 import android.Manifest;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
@@ -10,16 +9,14 @@ import android.graphics.Point;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.StateListDrawable;
 import android.os.Build;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.content.ContextCompat;
-import android.content.Intent;
 
 import com.voxeet.android.media.MediaStream;
 import com.voxeet.android.media.MediaStreamType;
@@ -42,7 +39,6 @@ import com.voxeet.sdk.utils.AudioType;
 import com.voxeet.sdk.utils.NoDocumentation;
 import com.voxeet.sdk.utils.Validate;
 import com.voxeet.toolkit.R;
-import com.voxeet.toolkit.activities.VoxeetEventCallBack;
 import com.voxeet.toolkit.configuration.ActionBar;
 import com.voxeet.toolkit.controllers.VoxeetToolkit;
 
@@ -85,8 +81,6 @@ public class VoxeetActionBarView extends VoxeetView {
     private ViewGroup screenshare_wrapper;
     private ViewGroup view_3d_wrapper;
 
-    private VoxeetEventCallBack voxeetEventCallBack;
-
     private View view_3d;
     private OnView3D view3d_listener;
 
@@ -99,7 +93,6 @@ public class VoxeetActionBarView extends VoxeetView {
     public VoxeetActionBarView(Context context) {
         super(context);
 
-        voxeetEventCallBack = (VoxeetEventCallBack) context;
         setUserPreferences();
     }
 
@@ -112,8 +105,6 @@ public class VoxeetActionBarView extends VoxeetView {
     @NoDocumentation
     public VoxeetActionBarView(Context context, AttributeSet attrs) {
         super(context, attrs);
-
-        voxeetEventCallBack = (VoxeetEventCallBack) context;
 
         updateAttrs(attrs);
 
@@ -208,7 +199,6 @@ public class VoxeetActionBarView extends VoxeetView {
     public VoxeetActionBarView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
 
-        voxeetEventCallBack = (VoxeetEventCallBack) context;
         updateAttrs(attrs);
 
         setUserPreferences();
@@ -367,7 +357,6 @@ public class VoxeetActionBarView extends VoxeetView {
                 speaker.setSelected(!speaker.isSelected());
 
                 VoxeetSdk.audio().setAudioRoute(speaker.isSelected() ? AudioRoute.ROUTE_SPEAKER : AudioRoute.ROUTE_PHONE);
-                onConferenceSpeakerOn(speaker.isSelected());
             }
         });
 
@@ -383,7 +372,6 @@ public class VoxeetActionBarView extends VoxeetView {
                             @Override
                             public void onCall(@Nullable Boolean result, @NonNull Solver<Object> solver) {
                                 //manage the result ?
-                                onConferenceCallEnded();
                             }
                         })
                         .error(new ErrorPromise() {
@@ -460,7 +448,6 @@ public class VoxeetActionBarView extends VoxeetView {
             microphone.setSelected(new_muted_state);
 
             VoxeetSdk.conference().mute(new_muted_state);
-            onConferenceMute(new_muted_state);
         }
     }
 
@@ -515,7 +502,7 @@ public class VoxeetActionBarView extends VoxeetView {
     }
 
     private void updateCameraState(@NonNull VideoState videoState) {
-        if(null == camera) return;
+        if (null == camera) return;
 
         switch (videoState) {
             case STARTED:

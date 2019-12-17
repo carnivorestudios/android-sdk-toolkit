@@ -7,6 +7,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import com.voxeet.sdk.events.restapi.ConferenceStatusResult;
 import com.voxeet.sdk.json.UserInfo;
 import com.voxeet.sdk.models.v1.ConferenceUser;
 import com.voxeet.push.center.management.Constants;
@@ -14,6 +15,7 @@ import com.voxeet.sdk.VoxeetSdk;
 import com.voxeet.sdk.models.Conference;
 import com.voxeet.sdk.preferences.VoxeetPreferences;
 import com.voxeet.sdk.utils.AndroidManifest;
+import com.voxeet.toolkit.controllers.VoxeetToolkit;
 import com.voxeet.toolkit.incoming.factory.IVoxeetActivity;
 import com.voxeet.toolkit.incoming.factory.IncomingCallFactory;
 

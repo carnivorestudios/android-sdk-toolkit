@@ -26,7 +26,7 @@ public class VoxeetOverlayToggleView extends AbstractVoxeetOverlayView {
                                    @NonNull VoxeetEventCallBack mVoxeetEventCallBack,
                                    @NonNull Context context,
                                    @NonNull OverlayState overlay) {
-        super(listener, provider, mVoxeetEventCallBack, context, overlay);
+        super(listener, provider, context, overlay);
         voxeetEventCallBack = mVoxeetEventCallBack;
     }
 
@@ -41,30 +41,5 @@ public class VoxeetOverlayToggleView extends AbstractVoxeetOverlayView {
     @Override
     protected int layout() {
         return R.layout.voxeet_overlay_toggle_view;
-    }
-
-    @Override
-    public void onConferenceMute(Boolean isMuted) {
-        voxeetEventCallBack.onConferenceMute(isMuted);
-    }
-
-    @Override
-    public void onConferenceVideo(Boolean isVideoEnabled) {
-        voxeetEventCallBack.onConferenceVideo(isVideoEnabled);
-    }
-
-    @Override
-    public void onConferenceCallEnded() {
-        voxeetEventCallBack.onConferenceCallEnded();
-    }
-
-    @Override
-    public void onConferenceMinimized() {
-        voxeetEventCallBack.onConferenceMinimized();
-    }
-
-    @Override
-    public void onConferenceSpeakerOn(Boolean isSpeakerOn) {
-        voxeetEventCallBack.onConferenceSpeakerOn(isSpeakerOn);
     }
 }

@@ -43,8 +43,6 @@ public abstract class AbstractVoxeetOverlayView extends AbstractVoxeetExpandable
 
     private ArrayList<AnimatorSet> mCurrentAnimations;
 
-    VoxeetEventCallBack voxeetEventCallBack;
-
     private final String TAG = AbstractVoxeetOverlayView.class.getSimpleName();
 
     private final int defaultWidth = getResources().getDimensionPixelSize(R.dimen.conference_view_width);
@@ -81,12 +79,9 @@ public abstract class AbstractVoxeetOverlayView extends AbstractVoxeetExpandable
      */
     public AbstractVoxeetOverlayView(@NonNull IExpandableViewProviderListener listener,
                                      @NonNull IVoxeetSubViewProvider provider,
-                                     @NonNull VoxeetEventCallBack mVoxeetEventCallBack,
                                      @NonNull Context context,
                                      @NonNull final OverlayState overlay) {
         super(context);
-
-        voxeetEventCallBack = mVoxeetEventCallBack;
 
         mCurrentAnimations = new ArrayList<>();
 
@@ -266,8 +261,6 @@ public abstract class AbstractVoxeetOverlayView extends AbstractVoxeetExpandable
 
             onPreMinizedView();
             minizeView();
-
-            voxeetEventCallBack.onConferenceMinimized();
         }
     }
 
@@ -621,6 +614,8 @@ public abstract class AbstractVoxeetOverlayView extends AbstractVoxeetExpandable
 
         animator.start();
     }
+
+
 
 
 }

@@ -240,8 +240,8 @@ public abstract class AbstractConferenceToolkitController implements VoxeetOverl
         removeRunnables.clear();
     }
 
-    public void forceReattach(VoxeetEventCallBack voxeetEventCallBack) {
-        mVoxeetEventCallBack = voxeetEventCallBack;
+    public void forceReattach() {
+
     }
 
     private boolean isInConference() {

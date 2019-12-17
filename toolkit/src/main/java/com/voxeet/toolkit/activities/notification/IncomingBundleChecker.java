@@ -140,10 +140,10 @@ public class IncomingBundleChecker {
                         });
             } else {
                 if (VoxeetSdk.conference() != null) {
-                    Promise<GetConferenceStatusResult> confStatus = Objects.requireNonNull(VoxeetSdk.conference()).getConferenceStatus(mConferenceId);
-                    confStatus.then(new PromiseExec<GetConferenceStatusResult, Object>() {
+                    Promise<ConferenceStatusResult> confStatus = Objects.requireNonNull(VoxeetSdk.conference()).getConferenceStatus(mConferenceId);
+                    confStatus.then(new PromiseExec<ConferenceStatusResult, Object>() {
                         @Override
-                        public void onCall(@Nullable GetConferenceStatusResult result, @NonNull Solver<Object> solver) {
+                        public void onCall(@Nullable ConferenceStatusResult result, @NonNull Solver<Object> solver) {
                             Log.d(TAG, "onCall: Conference Status");
                             if (result != null) {
                                 List<ConferenceUser> users = result.getConferenceUsers();

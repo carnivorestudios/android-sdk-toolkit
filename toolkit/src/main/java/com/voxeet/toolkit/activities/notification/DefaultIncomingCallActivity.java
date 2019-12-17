@@ -20,16 +20,18 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 import com.voxeet.audio.AudioRoute;
-import com.voxeet.sdk.core.VoxeetSdk;
-import com.voxeet.sdk.core.preferences.VoxeetPreferences;
-import com.voxeet.sdk.core.services.AudioService;
-import com.voxeet.sdk.events.sdk.ConferencePreJoinedEvent;
-import com.voxeet.sdk.events.sdk.DeclineConferenceResultEvent;
+import com.voxeet.sdk.VoxeetSdk;
+import com.voxeet.sdk.events.sdk.ConferenceStateEvent;
+import com.voxeet.sdk.events.v2.UserUpdatedEvent;
 import com.voxeet.sdk.exceptions.ExceptionManager;
 import com.voxeet.sdk.json.ConferenceDestroyedPush;
 import com.voxeet.sdk.json.ConferenceEnded;
 import com.voxeet.sdk.json.UserInfo;
 import com.voxeet.sdk.media.audio.SoundManager;
+import com.voxeet.sdk.models.v1.ConferenceUserStatus;
+import com.voxeet.sdk.preferences.VoxeetPreferences;
+import com.voxeet.sdk.services.AudioService;
+import com.voxeet.sdk.services.conference.information.ConferenceState;
 import com.voxeet.sdk.utils.AndroidManifest;
 import com.voxeet.sdk.utils.AudioType;
 import com.voxeet.toolkit.R;
@@ -79,8 +81,7 @@ public class DefaultIncomingCallActivity extends AppCompatActivity implements In
         //add few Flags to start the activity before its setContentView
         //note that if your device is using a keyguard (code or password)
         //when the call will be accepted, you still need to unlock it
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD |
-                WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
                 WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON |
                 WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
@@ -125,12 +126,12 @@ public class DefaultIncomingCallActivity extends AppCompatActivity implements In
             public void onCall(@Nullable Boolean result, @NonNull Solver<Boolean> solver) {
                 Log.d(TAG, "onCall: initialized ? " + result);
 
-                if (!VoxeetSdk.user().isSocketOpen()) {
+                if (!VoxeetSdk.session().isSocketOpen()) {
                     Log.d(TAG, "onCall: try to log user");
                     UserInfo userInfo = VoxeetPreferences.getSavedUserInfo();
 
                     if (null != userInfo) {
-                        solver.resolve(VoxeetSdk.user().login(userInfo));
+                        solver.resolve(VoxeetSdk.session().open(userInfo));
                     } else {
                         solver.resolve(false);
                     }
@@ -187,9 +188,15 @@ public class DefaultIncomingCallActivity extends AppCompatActivity implements In
                     }
 
                     mUsername.setText(mIncomingBundleChecker.getUserName());
-                    Picasso.get()
-                            .load(mIncomingBundleChecker.getAvatarUrl())
-                            .into(mAvatar);
+                    try {
+                        Picasso.get()
+                                .load(mIncomingBundleChecker.getAvatarUrl())
+                                .placeholder(R.drawable.default_avatar)
+                                .error(R.drawable.default_avatar)
+                                .into(mAvatar);
+                    } catch (Exception e) {
+
+                    }
                 } else {
                     finish();
                 }
@@ -246,13 +253,15 @@ public class DefaultIncomingCallActivity extends AppCompatActivity implements In
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onEvent(DeclineConferenceResultEvent event) {
-        finish();
+    public void onEvent(UserUpdatedEvent event) {
+        if(ConferenceUserStatus.DECLINE.equals(event.user.getStatus())) {
+            finish();
+        }
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onEvent(ConferencePreJoinedEvent event) {
-        if (mIncomingBundleChecker.isSameConference(event.getConferenceId())) {
+    public void onEvent(ConferenceStateEvent event) {
+        if (ConferenceState.JOINING.equals(event.state) && mIncomingBundleChecker.isSameConference(event.conference.getId())) {
             finish();
         }
     }
@@ -263,18 +272,18 @@ public class DefaultIncomingCallActivity extends AppCompatActivity implements In
     }
 
     protected void onDecline() {
-        tryInitializedSDK().then(new PromiseExec<Boolean, DeclineConferenceResultEvent>() {
+        tryInitializedSDK().then(new PromiseExec<Boolean, Boolean>() {
             @Override
-            public void onCall(@Nullable Boolean result, @NonNull Solver<DeclineConferenceResultEvent> solver) {
+            public void onCall(@Nullable Boolean result, @NonNull Solver<Boolean> solver) {
                 if (getConferenceId() != null && null != VoxeetSdk.conference()) {
                     solver.resolve(VoxeetSdk.conference().decline(getConferenceId()));
                 } else {
-                    solver.resolve((DeclineConferenceResultEvent) null);
+                    solver.resolve(false);
                 }
             }
-        }).then(new PromiseExec<DeclineConferenceResultEvent, Object>() {
+        }).then(new PromiseExec<Boolean, Object>() {
             @Override
-            public void onCall(@Nullable DeclineConferenceResultEvent result, @NonNull Solver<Object> solver) {
+            public void onCall(@Nullable Boolean result, @NonNull Solver<Object> solver) {
                 finish();
             }
         }).error(simpleError(true));
@@ -289,9 +298,9 @@ public class DefaultIncomingCallActivity extends AppCompatActivity implements In
     }
 
     private void onAcceptWithPermission() {
-        tryInitializedSDK().then(new PromiseExec<Boolean, DeclineConferenceResultEvent>() {
+        tryInitializedSDK().then(new PromiseExec<Boolean, Boolean>() {
             @Override
-            public void onCall(@Nullable Boolean result, @NonNull Solver<DeclineConferenceResultEvent> solver) {
+            public void onCall(@Nullable Boolean result, @NonNull Solver<Boolean> solver) {
                 if (mIncomingBundleChecker.isBundleValid()) {
                     Intent intent = mIncomingBundleChecker.createActivityAccepted(DefaultIncomingCallActivity.this);
                     //start the accepted call

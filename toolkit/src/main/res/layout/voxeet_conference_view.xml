@@ -78,8 +78,8 @@
                         android:id="@+id/conference_name"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="30dp"
                         android:layout_gravity="center_horizontal"
+                        android:layout_marginTop="30dp"
                         android:gravity="center_horizontal"
                         android:text="@string/voxeet_call"
                         android:textColor="@color/white"
@@ -90,8 +90,8 @@
                         android:id="@+id/voxeet_timer_expand"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:gravity="center_horizontal"
-                        android:layout_gravity="center_horizontal" />
+                        android:layout_gravity="center_horizontal"
+                        android:gravity="center_horizontal" />
 
                     <LinearLayout
                         android:id="@+id/layout_call_details"
@@ -164,5 +164,10 @@
             app:record_button="false" />
     </LinearLayout>
 
+    <com.voxeet.toolkit.implementation.VoxeetVideoStreamView
+        android:id="@+id/videoStream"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
 
 </FrameLayout>

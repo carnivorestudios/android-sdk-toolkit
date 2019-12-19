@@ -47,7 +47,7 @@ import eu.codlab.simplepromise.solve.Solver;
  * - singleTop / singleInstance
  */
 @Annotate
-public class VoxeetAppCompatActivity extends AppCompatActivity implements IVoxeetActivity {
+public class VoxeetAppCompatActivity extends AppCompatActivity implements VoxeetEventCallBack, IVoxeetActivity {
 
     private static final String TAG = VoxeetAppCompatActivity.class.getSimpleName();
     private IncomingBundleChecker mIncomingBundleChecker;
@@ -111,7 +111,7 @@ public class VoxeetAppCompatActivity extends AppCompatActivity implements IVoxee
         }
 
         if (null != VoxeetToolkit.getInstance() && null != VoxeetToolkit.getInstance().getConferenceToolkit()) {
-            VoxeetToolkit.getInstance().getConferenceToolkit().forceReattach();
+            VoxeetToolkit.getInstance().getConferenceToolkit().forceReattach(this);
         }
     }
 
@@ -275,4 +275,29 @@ public class VoxeetAppCompatActivity extends AppCompatActivity implements IVoxee
             sdkService = null;
         }
     };
+
+    @Override
+    public void onConferenceMute(Boolean isMuted) {
+        Log.d(TAG, "onConferenceMute: isMuted : "+isMuted);
+    }
+
+    @Override
+    public void onConferenceVideo(Boolean isVideoEnabled) {
+        Log.d(TAG, "onConferenceVideo: isVideoEnabled : "+isVideoEnabled);
+    }
+
+    @Override
+    public void onConferenceCallEnded() {
+        Log.d(TAG, "onConferenceCallEnded:");
+    }
+
+    @Override
+    public void onConferenceMinimized() {
+        Log.d(TAG, "onConferenceMinimized:");
+    }
+
+    @Override
+    public void onConferenceSpeakerOn(Boolean isSpeakerOn) {
+        Log.d(TAG, "onConferenceSpeakerOn:"+isSpeakerOn);
+    }
 }

@@ -277,6 +277,31 @@ public class VoxeetUsersView extends VoxeetView {
         adapter.updateUsers();
     }
 
+    @Override
+    public void onConferenceMute(Boolean isMuted) {
+
+    }
+
+    @Override
+    public void onConferenceVideo(Boolean isVideoEnabled) {
+
+    }
+
+    @Override
+    public void onConferenceCallEnded() {
+
+    }
+
+    @Override
+    public void onConferenceMinimized() {
+
+    }
+
+    @Override
+    public void onConferenceSpeakerOn(Boolean isSpeakerOn) {
+
+    }
+
     @NoDocumentation
     @Override
     public void init() {

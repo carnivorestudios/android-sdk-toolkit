@@ -274,6 +274,31 @@ public class VoxeetTimer extends VoxeetView {
     }
 
     @Override
+    public void onConferenceMute(Boolean isMuted) {
+        
+    }
+
+    @Override
+    public void onConferenceVideo(Boolean isVideoEnabled) {
+
+    }
+
+    @Override
+    public void onConferenceCallEnded() {
+
+    }
+
+    @Override
+    public void onConferenceMinimized() {
+
+    }
+
+    @Override
+    public void onConferenceSpeakerOn(Boolean isSpeakerOn) {
+
+    }
+
+    @Override
     public void init() {
         recordingImage.setColorFilter(notInConferenceColor);
         recordingImageAlpha.setColorFilter(notInConferenceColor);

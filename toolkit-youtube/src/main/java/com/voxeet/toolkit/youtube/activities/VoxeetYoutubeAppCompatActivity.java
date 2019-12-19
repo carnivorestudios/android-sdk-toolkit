@@ -14,6 +14,7 @@ import com.voxeet.sdk.services.screenshare.RequestScreenSharePermissionEvent;
 import com.voxeet.sdk.utils.Annotate;
 import com.voxeet.sdk.utils.NoDocumentation;
 import com.voxeet.sdk.utils.Validate;
+import com.voxeet.toolkit.activities.VoxeetEventCallBack;
 import com.voxeet.toolkit.activities.notification.IncomingBundleChecker;
 import com.voxeet.toolkit.controllers.VoxeetToolkit;
 import com.voxeet.toolkit.incoming.factory.IVoxeetActivity;
@@ -41,7 +42,7 @@ import eu.codlab.simplepromise.solve.Solver;
  * - singleTop / singleInstance
  */
 @Annotate
-public class VoxeetYoutubeAppCompatActivity extends YouTubeBaseActivity implements IVoxeetActivity {
+public class VoxeetYoutubeAppCompatActivity extends YouTubeBaseActivity implements IVoxeetActivity, VoxeetEventCallBack {
 
 
     private static final String TAG = VoxeetYoutubeAppCompatActivity.class.getSimpleName();
@@ -87,7 +88,7 @@ public class VoxeetYoutubeAppCompatActivity extends YouTubeBaseActivity implemen
             VoxeetSdk.screenShare().consumeRightsToScreenShare();
         }
 
-        VoxeetToolkit.getInstance().getConferenceToolkit().forceReattach();
+        VoxeetToolkit.getInstance().getConferenceToolkit().forceReattach(this);
     }
 
     @NoDocumentation
@@ -218,5 +219,30 @@ public class VoxeetYoutubeAppCompatActivity extends YouTubeBaseActivity implemen
      */
     protected boolean canBeRegisteredToReceiveCalls() {
         return true;
+    }
+
+    @Override
+    public void onConferenceMute(Boolean isMuted) {
+
+    }
+
+    @Override
+    public void onConferenceVideo(Boolean isVideoEnabled) {
+
+    }
+
+    @Override
+    public void onConferenceCallEnded() {
+
+    }
+
+    @Override
+    public void onConferenceMinimized() {
+
+    }
+
+    @Override
+    public void onConferenceSpeakerOn(Boolean isSpeakerOn) {
+
     }
 }

@@ -70,6 +70,31 @@ public class VoxeetReplayMessageView extends AbstractVoxeetExpandableView {
         updateStreams();
     }
 
+    @Override
+    public void onConferenceMute(Boolean isMuted) {
+        
+    }
+
+    @Override
+    public void onConferenceVideo(Boolean isVideoEnabled) {
+
+    }
+
+    @Override
+    public void onConferenceCallEnded() {
+
+    }
+
+    @Override
+    public void onConferenceMinimized() {
+
+    }
+
+    @Override
+    public void onConferenceSpeakerOn(Boolean isSpeakerOn) {
+
+    }
+
     private void updateStreams() {
 
         List<User> users = VoxeetSdk.conference().getUsers();

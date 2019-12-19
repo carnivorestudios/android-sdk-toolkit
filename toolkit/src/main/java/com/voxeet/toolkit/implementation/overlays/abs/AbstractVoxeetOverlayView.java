@@ -70,6 +70,7 @@ public abstract class AbstractVoxeetOverlayView extends AbstractVoxeetExpandable
     private ViewGroup sub_container;
     private boolean mRemainExpanded;
     private boolean mCanBeMinizedByTouch;
+    VoxeetEventCallBack voxeetEventCallBack;
 
     /**
      * Instantiates a new Voxeet conference view.
@@ -79,10 +80,12 @@ public abstract class AbstractVoxeetOverlayView extends AbstractVoxeetExpandable
      */
     public AbstractVoxeetOverlayView(@NonNull IExpandableViewProviderListener listener,
                                      @NonNull IVoxeetSubViewProvider provider,
+                                     @NonNull VoxeetEventCallBack mVoxeetEventCallBack,
                                      @NonNull Context context,
                                      @NonNull final OverlayState overlay) {
         super(context);
 
+        voxeetEventCallBack = mVoxeetEventCallBack;
         mCurrentAnimations = new ArrayList<>();
 
         mCanBeMinizedByTouch = true;
@@ -261,6 +264,7 @@ public abstract class AbstractVoxeetOverlayView extends AbstractVoxeetExpandable
 
             onPreMinizedView();
             minizeView();
+            voxeetEventCallBack.onConferenceMinimized();
         }
     }
 

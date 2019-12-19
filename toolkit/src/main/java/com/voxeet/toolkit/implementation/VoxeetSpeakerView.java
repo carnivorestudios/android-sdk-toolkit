@@ -381,6 +381,31 @@ public class VoxeetSpeakerView extends VoxeetView {
         handler.post(updateVuMeterRunnable);
     }
 
+    @Override
+    public void onConferenceMute(Boolean isMuted) {
+
+    }
+
+    @Override
+    public void onConferenceVideo(Boolean isVideoEnabled) {
+
+    }
+
+    @Override
+    public void onConferenceCallEnded() {
+
+    }
+
+    @Override
+    public void onConferenceMinimized() {
+
+    }
+
+    @Override
+    public void onConferenceSpeakerOn(Boolean isSpeakerOn) {
+
+    }
+
     /**
      * Call this method to pause the various callbacks
      */

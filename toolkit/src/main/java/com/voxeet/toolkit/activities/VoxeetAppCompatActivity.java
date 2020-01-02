@@ -300,4 +300,14 @@ public class VoxeetAppCompatActivity extends AppCompatActivity implements Voxeet
     public void onConferenceSpeakerOn(Boolean isSpeakerOn) {
         Log.d(TAG, "onConferenceSpeakerOn:"+isSpeakerOn);
     }
+
+    @Override
+    public void onConferenceNoMoreUsers() {
+        Log.d(TAG, "onConferenceNoMoreUsers:");
+    }
+
+    @Override
+    public void onConferenceLeft() {
+        Log.d(TAG, "onConferenceLeft:");
+    }
 }

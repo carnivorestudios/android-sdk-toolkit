@@ -245,4 +245,14 @@ public class VoxeetYoutubeAppCompatActivity extends YouTubeBaseActivity implemen
     public void onConferenceSpeakerOn(Boolean isSpeakerOn) {
 
     }
+
+    @Override
+    public void onConferenceNoMoreUsers() {
+
+    }
+
+    @Override
+    public void onConferenceLeft() {
+
+    }
 }

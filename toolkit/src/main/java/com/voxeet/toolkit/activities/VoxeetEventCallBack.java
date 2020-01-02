@@ -25,4 +25,14 @@ public interface VoxeetEventCallBack {
      * On conference Speaker On from this user.
      */
     void onConferenceSpeakerOn(Boolean isSpeakerOn);
+
+    /**
+     * On conference no more users
+     */
+    void onConferenceNoMoreUsers();
+
+    /**
+     * On conference no more users
+     */
+    void onConferenceLeft();
 }

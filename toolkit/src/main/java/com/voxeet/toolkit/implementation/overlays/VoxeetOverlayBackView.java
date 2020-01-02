@@ -64,4 +64,14 @@ public class VoxeetOverlayBackView extends AbstractVoxeetOverlayView {
     public void onConferenceSpeakerOn(Boolean isSpeakerOn) {
         voxeetEventCallBack.onConferenceSpeakerOn(isSpeakerOn);
     }
+
+    @Override
+    public void onConferenceNoMoreUser() {
+        voxeetEventCallBack.onConferenceNoMoreUsers();
+    }
+
+    @Override
+    public void onConferenceLeft() {
+        voxeetEventCallBack.onConferenceLeft();
+    }
 }

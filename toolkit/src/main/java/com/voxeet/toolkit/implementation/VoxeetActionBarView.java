@@ -298,6 +298,16 @@ public class VoxeetActionBarView extends VoxeetView {
         voxeetEventCallBack.onConferenceSpeakerOn(isSpeakerOn);
     }
 
+    @Override
+    public void onConferenceNoMoreUser() {
+        voxeetEventCallBack.onConferenceNoMoreUsers();
+    }
+
+    @Override
+    public void onConferenceLeft() {
+        voxeetEventCallBack.onConferenceLeft();
+    }
+
     /**
      * Method call when a stream is added to any user in the conference
      *

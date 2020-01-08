@@ -12,15 +12,6 @@ import com.voxeet.toolkit.providers.logics.DefaultConferenceSubViewProvider;
 
 import org.greenrobot.eventbus.EventBus;
 
-import java.util.List;
-import java.util.Objects;
-
-import eu.codlab.simplepromise.Promise;
-import eu.codlab.simplepromise.solve.ErrorPromise;
-import eu.codlab.simplepromise.solve.PromiseExec;
-import eu.codlab.simplepromise.solve.PromiseSolver;
-import eu.codlab.simplepromise.solve.Solver;
-
 /**
  * Holds and manipulate the various elements to display the Overlay for a Conference in any app using it
  */

@@ -45,7 +45,7 @@ public class IncomingFullScreen implements IIncomingInvitationListener {
     public void onInvitation(@NonNull Context context, @NonNull InvitationBundle invitationBundle) {
 
         String voxeet_default_incoming = AndroidManifest.readMetadata(context, "voxeet_incoming_class", null);
-        Log.d("NotificationCenterFactory", "onInvitation: " + voxeet_default_incoming);
+        Log.d("IncomingFullScreen", "onInvitation: " + voxeet_default_incoming);
 
         Bundle extra = invitationBundle.asBundle();
 

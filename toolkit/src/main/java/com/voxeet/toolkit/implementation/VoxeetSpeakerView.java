@@ -282,8 +282,8 @@ public class VoxeetSpeakerView extends VoxeetView {
                 avatarUrl = conferenceUser.getInfo().getAvatarUrl();
             }
             String avatarName = "";
-            if (null != conferenceUser && null != conferenceUser.getUserInfo()) {
-                avatarName = conferenceUser.getUserInfo().getName();
+            if (null != conferenceUser && null != conferenceUser.getInfo()) {
+                avatarName = conferenceUser.getInfo().getName();
             }
             ColorGenerator generator = ColorGenerator.MATERIAL;
             if (avatarName.length() >= 2) {

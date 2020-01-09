@@ -81,7 +81,7 @@ public class VoxeetConferenceView extends AbstractVoxeetExpandableView implement
     private boolean mPreviouslyScreenShare;
     private TextView conferenceState;
     private TextView conferenceName;
-    private ConferenceState mState = ConferenceState.DEFAULT;
+    private ConferenceStatus mState = ConferenceStatus.DEFAULT;
     private boolean isExpanded = false;
     private ScaleGestureDetector mScaleOnPinchDetector;
 

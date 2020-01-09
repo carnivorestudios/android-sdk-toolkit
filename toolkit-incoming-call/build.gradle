@@ -89,8 +89,8 @@ dependencies {
     androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    implementation "com.android.support:support-compat:${rootProject.ext.supportLibVersion}"
-    implementation("com.voxeet.sdk:public-sdk:${rootProject.ext.voxeetSdkVersion}") {
+    compile "com.android.support:support-compat:${rootProject.ext.supportLibVersion}"
+    compile("com.voxeet.sdk:public-sdk:${rootProject.ext.voxeetSdkVersion}") {
         transitive = true
     }
 }

@@ -85,12 +85,8 @@ configurations {
 }
 
 dependencies {
-    implementation "com.android.support:support-compat:${rootProject.ext.supportLibVersion}"
-    implementation project(":toolkit")
-    implementation("com.voxeet.sdk:public-sdk:${rootProject.ext.voxeetSdkVersion}") {
-        transitive = true
-    }
-
+    compile "com.android.support:support-compat:${rootProject.ext.supportLibVersion}"
+    compile project(":toolkit")
 }
 
 apply from: "../tasks.gradle"

@@ -21,10 +21,6 @@ import android.widget.ImageView;
 import com.voxeet.android.media.MediaStream;
 import com.voxeet.android.media.MediaStreamType;
 import com.voxeet.audio.AudioRoute;
-import com.voxeet.promise.Promise;
-import com.voxeet.promise.solve.ErrorPromise;
-import com.voxeet.promise.solve.PromiseExec;
-import com.voxeet.promise.solve.Solver;
 import com.voxeet.sdk.VoxeetSdk;
 import com.voxeet.sdk.events.error.PermissionRefusedEvent;
 import com.voxeet.sdk.events.sdk.AudioRouteChangeEvent;
@@ -32,11 +28,11 @@ import com.voxeet.sdk.events.sdk.StartScreenShareAnswerEvent;
 import com.voxeet.sdk.events.sdk.StopScreenShareAnswerEvent;
 import com.voxeet.sdk.events.v2.VideoStateEvent;
 import com.voxeet.sdk.models.Conference;
-import com.voxeet.sdk.models.Participant;
+import com.voxeet.sdk.models.User;
 import com.voxeet.sdk.services.AudioService;
 import com.voxeet.sdk.services.ConferenceService;
 import com.voxeet.sdk.services.conference.information.ConferenceInformation;
-import com.voxeet.sdk.services.conference.information.ConferenceParticipantType;
+import com.voxeet.sdk.services.conference.information.ConferenceUserType;
 import com.voxeet.sdk.services.media.VideoState;
 import com.voxeet.sdk.utils.Annotate;
 import com.voxeet.sdk.utils.AudioType;
@@ -50,6 +46,11 @@ import com.voxeet.toolkit.controllers.VoxeetToolkit;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+
+import eu.codlab.simplepromise.Promise;
+import eu.codlab.simplepromise.solve.ErrorPromise;
+import eu.codlab.simplepromise.solve.PromiseExec;
+import eu.codlab.simplepromise.solve.Solver;
 
 /**
  * Class used to display the various action buttons in the conference
@@ -315,7 +316,7 @@ public class VoxeetActionBarView extends VoxeetView {
      * @param mediaStream the newly added stream
      */
     @Override
-    public void onStreamAddedEvent(@NonNull Conference conference, @NonNull Participant user, @NonNull MediaStream mediaStream) {
+    public void onStreamAddedEvent(@NonNull Conference conference, @NonNull User user, @NonNull MediaStream mediaStream) {
         super.onStreamAddedEvent(conference, user, mediaStream);
         invalidateOwnStreams();
     }
@@ -328,7 +329,7 @@ public class VoxeetActionBarView extends VoxeetView {
      * @param mediaStream the stream which has been updated
      */
     @Override
-    public void onStreamUpdatedEvent(@NonNull Conference conference, @NonNull Participant user, @NonNull MediaStream mediaStream) {
+    public void onStreamUpdatedEvent(@NonNull Conference conference, @NonNull User user, @NonNull MediaStream mediaStream) {
         super.onStreamUpdatedEvent(conference, user, mediaStream);
         invalidateOwnStreams();
     }
@@ -341,7 +342,7 @@ public class VoxeetActionBarView extends VoxeetView {
      * @param mediaStream the removed stream
      */
     @Override
-    public void onStreamRemovedEvent(@NonNull Conference conference, @NonNull Participant user, @NonNull MediaStream mediaStream) {
+    public void onStreamRemovedEvent(@NonNull Conference conference, @NonNull User user, @NonNull MediaStream mediaStream) {
         super.onStreamRemovedEvent(conference, user, mediaStream);
         invalidateOwnStreams();
     }
@@ -352,7 +353,7 @@ public class VoxeetActionBarView extends VoxeetView {
      * - the screenshare button
      */
     public void invalidateOwnStreams() {
-        Participant user = VoxeetSdk.conference().findParticipantById(VoxeetSdk.session().getParticipantId());
+        User user = VoxeetSdk.conference().findUserById(VoxeetSdk.session().getUserId());
 
         if (null != user) {
             MediaStream cameraStream = user.streamsHandler().getFirst(MediaStreamType.Camera);
@@ -792,7 +793,7 @@ public class VoxeetActionBarView extends VoxeetView {
 
     private boolean isListener() {
         ConferenceInformation information = VoxeetSdk.conference().getCurrentConference();
-        return null == information || ConferenceParticipantType.LISTENER.equals(information.getConferenceParticipantType());
+        return null == information || ConferenceUserType.LISTENER.equals(information.getConferenceUserType());
     }
 
     private boolean isValidOverride(Integer button_on, Integer button_off) {

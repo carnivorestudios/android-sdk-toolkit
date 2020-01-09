@@ -9,10 +9,10 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.WindowManager;
 
+import com.voxeet.push.center.invitation.IIncomingInvitationListener;
+import com.voxeet.push.center.invitation.InvitationBundle;
+import com.voxeet.push.center.management.Constants;
 import com.voxeet.sdk.factories.VoxeetIntentFactory;
-import com.voxeet.sdk.push.center.invitation.IIncomingInvitationListener;
-import com.voxeet.sdk.push.center.invitation.InvitationBundle;
-import com.voxeet.sdk.push.center.management.Constants;
 import com.voxeet.sdk.utils.AndroidManifest;
 
 public class IncomingFullScreen implements IIncomingInvitationListener {
@@ -45,7 +45,7 @@ public class IncomingFullScreen implements IIncomingInvitationListener {
     public void onInvitation(@NonNull Context context, @NonNull InvitationBundle invitationBundle) {
 
         String voxeet_default_incoming = AndroidManifest.readMetadata(context, "voxeet_incoming_class", null);
-        Log.d("IncomingFullScreen", "onInvitation: " + voxeet_default_incoming);
+        Log.d("NotificationCenterFactory", "onInvitation: " + voxeet_default_incoming);
 
         Bundle extra = invitationBundle.asBundle();
 

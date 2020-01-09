@@ -8,18 +8,19 @@ import android.view.animation.AccelerateDecelerateInterpolator;
 
 import com.voxeet.android.media.MediaStream;
 import com.voxeet.android.media.MediaStreamType;
-import com.voxeet.promise.solve.ErrorPromise;
-import com.voxeet.promise.solve.PromiseExec;
-import com.voxeet.promise.solve.Solver;
 import com.voxeet.sdk.VoxeetSdk;
 import com.voxeet.sdk.media.camera.CameraContext;
-import com.voxeet.sdk.models.Participant;
+import com.voxeet.sdk.models.User;
 import com.voxeet.sdk.views.VideoView;
 import com.voxeet.toolkit.implementation.VoxeetConferenceView;
 
 import java.lang.ref.WeakReference;
 
 import javax.annotation.Nullable;
+
+import eu.codlab.simplepromise.solve.ErrorPromise;
+import eu.codlab.simplepromise.solve.PromiseExec;
+import eu.codlab.simplepromise.solve.Solver;
 
 public class ConferenceViewRendererControl {
 
@@ -79,7 +80,7 @@ public class ConferenceViewRendererControl {
                                        @NonNull MediaStream stream) {
         VideoView selectedView = getOtherVideoView();
 
-        String ownUserId = VoxeetSdk.session().getParticipantId();
+        String ownUserId = VoxeetSdk.session().getUserId();
         if (null == ownUserId) ownUserId = "";
 
         if (ownUserId.equals(peerId)) {
@@ -112,8 +113,8 @@ public class ConferenceViewRendererControl {
         VideoView selectedView = getOtherVideoView();
         VideoView selfVideoView = getSelfVideoView();
 
-        String ownUserId = VoxeetSdk.session().getParticipantId();
-        Participant user = VoxeetSdk.conference().findParticipantById(ownUserId);
+        String ownUserId = VoxeetSdk.session().getUserId();
+        User user = VoxeetSdk.conference().findUserById(ownUserId);
 
         selectedView.unAttach();
 
@@ -134,7 +135,7 @@ public class ConferenceViewRendererControl {
         CameraContext provider = VoxeetSdk.mediaDevice().getCameraContext();
 
         if (null != stream && stream.videoTracks().size() > 0) {
-            String ownUserId = VoxeetSdk.session().getParticipantId();
+            String ownUserId = VoxeetSdk.session().getUserId();
             if (!ToolkitUtils.hasParticipants()) {
                 selfView.unAttach();
                 selfView.setVisibility(View.GONE);
@@ -154,7 +155,7 @@ public class ConferenceViewRendererControl {
                     getParent().showSpeakerView();
                 }
                 selfView.setMirror(provider.isDefaultFrontFacing());
-                selfView.attach(VoxeetSdk.session().getParticipantId(), stream);
+                selfView.attach(VoxeetSdk.session().getUserId(), stream);
                 selfView.setVisibility(View.VISIBLE);
             }
         }
@@ -162,7 +163,7 @@ public class ConferenceViewRendererControl {
 
     private void setClickForSelectedIfNecessary() {
         VideoView selectedView = getOtherVideoView();
-        String ownUserId = VoxeetSdk.session().getParticipantId();
+        String ownUserId = VoxeetSdk.session().getUserId();
         if (null == ownUserId) ownUserId = "";
 
         if (clickEnabled && ownUserId.equals(selectedView.getPeerId())) {
@@ -182,7 +183,7 @@ public class ConferenceViewRendererControl {
             selfView.setVisibility(View.GONE);
         }
 
-        String ownUserId = VoxeetSdk.session().getParticipantId();
+        String ownUserId = VoxeetSdk.session().getUserId();
         if (selectedView.isAttached() && ownUserId.equals(selectedView.getPeerId())) {
             selectedView.setOnClickListener(null);
             selectedView.setClickable(false);
@@ -193,7 +194,7 @@ public class ConferenceViewRendererControl {
     }
 
     public void switchCamera() {
-        String ownUserId = VoxeetSdk.session().getParticipantId();
+        String ownUserId = VoxeetSdk.session().getUserId();
         if (null == ownUserId) ownUserId = "";
 
         VideoView self = selfVideoView.get();
@@ -242,7 +243,7 @@ public class ConferenceViewRendererControl {
     }
 
     public void updateMirror(boolean isFrontCamera) {
-        String ownUserId = VoxeetSdk.session().getParticipantId();
+        String ownUserId = VoxeetSdk.session().getUserId();
         VideoView selectedView = getOtherVideoView();
         VideoView selfView = getSelfVideoView();
 

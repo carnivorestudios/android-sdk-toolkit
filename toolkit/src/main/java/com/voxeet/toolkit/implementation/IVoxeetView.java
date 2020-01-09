@@ -4,7 +4,7 @@ import android.support.annotation.NonNull;
 
 import com.voxeet.android.media.MediaStream;
 import com.voxeet.sdk.models.Conference;
-import com.voxeet.sdk.models.Participant;
+import com.voxeet.sdk.models.User;
 
 import java.util.List;
 
@@ -26,7 +26,7 @@ public interface IVoxeetView {
      *
      * @param conferenceId the conference id
      */
-    void onConferenceUpdated(@NonNull List<Participant> conferenceId);
+    void onConferenceUpdated(@NonNull List<User> conferenceId);
 
     /**
      * On conference creation.
@@ -45,15 +45,15 @@ public interface IVoxeetView {
      */
     void onConferenceNoMoreUser();
 
-    void onUserAddedEvent(@NonNull Conference conference, @NonNull Participant user);
+    void onUserAddedEvent(@NonNull Conference conference, @NonNull User user);
 
-    void onUserUpdatedEvent(@NonNull Conference conference, @NonNull Participant user);
+    void onUserUpdatedEvent(@NonNull Conference conference, @NonNull User user);
 
-    void onStreamAddedEvent(@NonNull Conference conference, @NonNull Participant user, @NonNull MediaStream mediaStream);
+    void onStreamAddedEvent(@NonNull Conference conference, @NonNull User user, @NonNull MediaStream mediaStream);
 
-    void onStreamUpdatedEvent(@NonNull Conference conference, @NonNull Participant user, @NonNull MediaStream mediaStream);
+    void onStreamUpdatedEvent(@NonNull Conference conference, @NonNull User user, @NonNull MediaStream mediaStream);
 
-    void onStreamRemovedEvent(@NonNull Conference conference, @NonNull Participant user, @NonNull MediaStream mediaStream);
+    void onStreamRemovedEvent(@NonNull Conference conference, @NonNull User user, @NonNull MediaStream mediaStream);
 
     /**
      * An user declined the call
@@ -72,7 +72,7 @@ public interface IVoxeetView {
     /**
      * @param conferenceUsers the new list of users
      */
-    void onConferenceUsersListUpdate(List<Participant> conferenceUsers);
+    void onConferenceUsersListUpdate(List<User> conferenceUsers);
 
     /**
      * On conference leaving from this user.

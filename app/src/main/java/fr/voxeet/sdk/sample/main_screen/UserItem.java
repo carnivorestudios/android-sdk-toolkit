@@ -2,20 +2,20 @@ package fr.voxeet.sdk.sample.main_screen;
 
 import android.support.annotation.DrawableRes;
 
-import com.voxeet.sdk.json.ParticipantInfo;
+import com.voxeet.sdk.json.UserInfo;
 
 public class UserItem {
 
     @DrawableRes
     private int _drawable;
 
-    private ParticipantInfo _user_info;
+    private UserInfo _user_info;
     private boolean _selected;
 
     private UserItem() {
     }
 
-    public UserItem(@DrawableRes int drawable, ParticipantInfo user_info) {
+    public UserItem(@DrawableRes int drawable, UserInfo user_info) {
         this();
 
         _drawable = drawable;
@@ -27,7 +27,7 @@ public class UserItem {
         return _drawable;
     }
 
-    public ParticipantInfo getUserInfo() {
+    public UserInfo getUserInfo() {
         return _user_info;
     }
 

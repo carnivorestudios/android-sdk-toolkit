@@ -12,14 +12,14 @@ import android.support.annotation.StringRes;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
+import com.voxeet.push.utils.NotificationHelper;
 import com.voxeet.sdk.VoxeetSdk;
-import com.voxeet.sdk.events.sdk.ConferenceStatusUpdatedEvent;
+import com.voxeet.sdk.events.sdk.ConferenceStateEvent;
 import com.voxeet.sdk.json.ConferenceDestroyedPush;
 import com.voxeet.sdk.json.ConferenceEnded;
-import com.voxeet.sdk.push.utils.NotificationHelper;
 import com.voxeet.sdk.services.ConferenceService;
 import com.voxeet.sdk.services.conference.information.ConferenceInformation;
-import com.voxeet.sdk.services.conference.information.ConferenceStatus;
+import com.voxeet.sdk.services.conference.information.ConferenceState;
 import com.voxeet.sdk.utils.Annotate;
 
 import org.greenrobot.eventbus.EventBus;
@@ -37,7 +37,7 @@ public abstract class AbstractSDKService<BINDER extends SDKBinder> extends Servi
 
     @StringRes
     private int lastForeground;
-    protected ConferenceStatus currentConferenceState;
+    protected ConferenceState currentConferenceState;
 
     @NonNull
     private ConferenceService conferenceService;
@@ -86,7 +86,7 @@ public abstract class AbstractSDKService<BINDER extends SDKBinder> extends Servi
     }
 
     @NonNull
-    protected ConferenceStatus getConferenceStateFromSDK() {
+    protected ConferenceState getConferenceStateFromSDK() {
         if (null != VoxeetSdk.instance()) {
             ConferenceInformation info = conferenceService.getCurrentConference();
             if (null != info) {
@@ -94,18 +94,18 @@ public abstract class AbstractSDKService<BINDER extends SDKBinder> extends Servi
             }
         }
 
-        return ConferenceStatus.DEFAULT;
+        return ConferenceState.DEFAULT;
     }
 
     @NonNull
-    public ConferenceStatus getConferenceState() {
-        ConferenceStatus state = currentConferenceState;
+    public ConferenceState getConferenceState() {
+        ConferenceState state = currentConferenceState;
         if (null == state) state = getConferenceStateFromSDK();
         return state;
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onEvent(@NonNull ConferenceStatusUpdatedEvent event) {
+    public void onEvent(@NonNull ConferenceStateEvent event) {
         switch (event.state) {
             case CREATING:
                 setForegroundState(getConferenceStateCreating());
@@ -119,11 +119,18 @@ public abstract class AbstractSDKService<BINDER extends SDKBinder> extends Servi
             case JOINED:
                 setForegroundState(getConferenceStateJoined());
                 break;
+            case JOINED_ERROR:
+                setForegroundState(getConferenceStateJoinedError());
+                stopForeground();
+                break;
+            case CREATED_ERROR:
+                stopForeground();
+                break;
             case LEFT:
                 setForegroundState(getConferenceStateLeft());
                 stopForeground();
                 break;
-            case ERROR:
+            case LEFT_ERROR:
                 setForegroundState(getConferenceStateLeft());
                 stopForeground();
                 break;

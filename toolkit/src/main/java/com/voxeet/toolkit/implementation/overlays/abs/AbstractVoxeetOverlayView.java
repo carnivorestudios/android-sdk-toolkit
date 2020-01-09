@@ -4,9 +4,9 @@ import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.animation.ValueAnimator;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.content.res.Resources;
-import android.support.annotation.NonNull;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -18,9 +18,14 @@ import android.view.WindowManager;
 import android.view.animation.AccelerateInterpolator;
 import android.widget.FrameLayout;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
+
 import com.voxeet.sdk.exceptions.ExceptionManager;
 import com.voxeet.sdk.utils.ScreenHelper;
 import com.voxeet.toolkit.R;
+import com.voxeet.toolkit.activities.VoxeetEventCallBack;
 import com.voxeet.toolkit.configuration.Overlay;
 import com.voxeet.toolkit.controllers.VoxeetToolkit;
 import com.voxeet.toolkit.implementation.overlays.OverlayState;
@@ -65,6 +70,7 @@ public abstract class AbstractVoxeetOverlayView extends AbstractVoxeetExpandable
     private ViewGroup sub_container;
     private boolean mRemainExpanded;
     private boolean mCanBeMinizedByTouch;
+    VoxeetEventCallBack voxeetEventCallBack;
 
     /**
      * Instantiates a new Voxeet conference view.
@@ -74,10 +80,12 @@ public abstract class AbstractVoxeetOverlayView extends AbstractVoxeetExpandable
      */
     public AbstractVoxeetOverlayView(@NonNull IExpandableViewProviderListener listener,
                                      @NonNull IVoxeetSubViewProvider provider,
+                                     @NonNull VoxeetEventCallBack mVoxeetEventCallBack,
                                      @NonNull Context context,
                                      @NonNull final OverlayState overlay) {
         super(context);
 
+        voxeetEventCallBack = mVoxeetEventCallBack;
         mCurrentAnimations = new ArrayList<>();
 
         mCanBeMinizedByTouch = true;
@@ -256,6 +264,7 @@ public abstract class AbstractVoxeetOverlayView extends AbstractVoxeetExpandable
 
             onPreMinizedView();
             minizeView();
+            voxeetEventCallBack.onConferenceMinimized();
         }
     }
 
@@ -609,6 +618,8 @@ public abstract class AbstractVoxeetOverlayView extends AbstractVoxeetExpandable
 
         animator.start();
     }
+
+
 
 
 }

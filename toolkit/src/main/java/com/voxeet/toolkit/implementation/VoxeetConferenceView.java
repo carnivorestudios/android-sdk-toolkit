@@ -72,6 +72,7 @@ public class VoxeetConferenceView extends AbstractVoxeetExpandableView implement
 
     private VoxeetActiveSpeakerTimer voxeetActiveSpeakerTimer;
     private VoxeetTimer voxeetTimer;
+    private VoxeetTimer voxeetTimerExpand;
 
     private NotchAvoidView notchView;
 
@@ -79,7 +80,8 @@ public class VoxeetConferenceView extends AbstractVoxeetExpandableView implement
     private String mPreviouslyAttachedPeerId;
     private boolean mPreviouslyScreenShare;
     private TextView conferenceState;
-    private ConferenceStatus mState = ConferenceStatus.DEFAULT;
+    private TextView conferenceName;
+    private ConferenceState mState = ConferenceState.DEFAULT;
     private boolean isExpanded = false;
     private ScaleGestureDetector mScaleOnPinchDetector;
 
@@ -250,6 +252,31 @@ public class VoxeetConferenceView extends AbstractVoxeetExpandableView implement
     }
 
     @Override
+    public void onConferenceMute(Boolean isMuted) {
+
+    }
+
+    @Override
+    public void onConferenceVideo(Boolean isVideoEnabled) {
+
+    }
+
+    @Override
+    public void onConferenceCallEnded() {
+
+    }
+
+    @Override
+    public void onConferenceMinimized() {
+
+    }
+
+    @Override
+    public void onConferenceSpeakerOn(Boolean isSpeakerOn) {
+
+    }
+
+    @Override
     public void onConferenceCreating() {
         super.onConferenceCreating();
 
@@ -260,6 +287,8 @@ public class VoxeetConferenceView extends AbstractVoxeetExpandableView implement
         participantView.setVisibility(View.VISIBLE);
         voxeetTimer.setVisibility(View.GONE);
         notchView.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
+        conferenceName.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
+        voxeetTimerExpand.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
         conferenceActionBarView.setVisibility(!isExpanded ? View.GONE : View.VISIBLE);
         conferenceActionBarView.onConferenceCreating();
         Log.d(TAG, "onConferenceCreating: " + View.VISIBLE + " " + conferenceActionBarView.getVisibility());
@@ -280,6 +309,8 @@ public class VoxeetConferenceView extends AbstractVoxeetExpandableView implement
         participantView.setVisibility(View.VISIBLE);
         voxeetTimer.setVisibility(View.GONE);
         notchView.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
+        conferenceName.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
+        voxeetTimerExpand.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
         conferenceActionBarView.setVisibility(!isExpanded ? View.GONE : View.VISIBLE);
         conferenceActionBarView.onConferenceCreation(conference);
         Log.d(TAG, "onConferenceCreation: " + View.VISIBLE + " " + conferenceActionBarView.getVisibility());
@@ -299,6 +330,8 @@ public class VoxeetConferenceView extends AbstractVoxeetExpandableView implement
         participantView.setVisibility(View.VISIBLE);
         voxeetTimer.setVisibility(View.GONE);
         notchView.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
+        conferenceName.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
+        voxeetTimerExpand.setVisibility(View.GONE);
         Log.d(TAG, "onConferenceJoining: " + View.VISIBLE + " " + conferenceActionBarView.getVisibility());
 
         conferenceActionBarView.setVisibility(!isExpanded ? View.GONE : View.VISIBLE);
@@ -319,12 +352,16 @@ public class VoxeetConferenceView extends AbstractVoxeetExpandableView implement
             participantView.setVisibility(View.VISIBLE);
             voxeetTimer.setVisibility(View.GONE);
             notchView.setVisibility(View.VISIBLE);
+            conferenceName.setVisibility(View.VISIBLE);
+            voxeetTimerExpand.setVisibility(View.VISIBLE);
         } else {
             if (null != selectedView) selectedView.setVisibility(View.GONE);
             speakerView.setVisibility(View.GONE);
-            participantView.setVisibility(View.VISIBLE);
-            voxeetTimer.setVisibility(View.GONE);
+            participantView.setVisibility(View.GONE);
+            voxeetTimer.setVisibility(View.VISIBLE);
             notchView.setVisibility(View.GONE);
+            conferenceName.setVisibility(View.GONE);
+            voxeetTimerExpand.setVisibility(View.GONE);
         }
 
         Participant user = VoxeetSdk.conference().findParticipantById(VoxeetSdk.session().getParticipantId());
@@ -356,11 +393,15 @@ public class VoxeetConferenceView extends AbstractVoxeetExpandableView implement
             participantView.setVisibility(View.VISIBLE);
             voxeetTimer.setVisibility(View.GONE);
             notchView.setVisibility(View.VISIBLE);
+            conferenceName.setVisibility(View.VISIBLE);
+            voxeetTimerExpand.setVisibility(View.VISIBLE);
         } else {
             conferenceState.setVisibility(View.GONE);
             participantView.setVisibility(View.VISIBLE);
             voxeetTimer.setVisibility(View.VISIBLE);
             notchView.setVisibility(View.GONE);
+            conferenceName.setVisibility(View.GONE);
+            voxeetTimerExpand.setVisibility(View.GONE);
 
             if (null != selectedView && selectedView.isAttached())
                 selectedView.setVisibility(View.VISIBLE);
@@ -396,6 +437,8 @@ public class VoxeetConferenceView extends AbstractVoxeetExpandableView implement
             participantView.setVisibility(View.VISIBLE);
             voxeetTimer.setVisibility(View.GONE);
             notchView.setVisibility(View.VISIBLE);
+            conferenceName.setVisibility(View.VISIBLE);
+            voxeetTimerExpand.setVisibility(View.VISIBLE);
         } else {
             if (null != selectedView && (!selectedView.isAttached() || !ownUserId.equals(selectedView.getPeerId()))) {
                 selectedView.setVisibility(View.GONE);
@@ -404,6 +447,8 @@ public class VoxeetConferenceView extends AbstractVoxeetExpandableView implement
             participantView.setVisibility(View.VISIBLE);
             voxeetTimer.setVisibility(View.GONE);
             notchView.setVisibility(View.GONE);
+            conferenceName.setVisibility(View.GONE);
+            voxeetTimerExpand.setVisibility(View.GONE);
         }
 
         Conference conference = VoxeetSdk.conference().getConference();
@@ -428,6 +473,8 @@ public class VoxeetConferenceView extends AbstractVoxeetExpandableView implement
         participantView.setVisibility(View.GONE);
         voxeetTimer.setVisibility(View.GONE);
         notchView.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
+        conferenceName.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
+        voxeetTimerExpand.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
 
         Conference conference = VoxeetSdk.conference().getConference();
         if (null != conference) participantView.update(conference);
@@ -469,6 +516,20 @@ public class VoxeetConferenceView extends AbstractVoxeetExpandableView implement
         ConferenceService service = VoxeetSdk.conference();
         List<Participant> users = service.getParticipants();
 
+        if (service.getConference() != null && service.getConference().getAlias() != null) {
+            String aliasName = service.getConference().getAlias();
+            if (aliasName.contains(":")) {
+                Log.d("if name: ", aliasName);
+                String[] confName = aliasName.split(":");
+                Log.d("conf name: ", confName[0]);
+                String spConfName = confName[0].replace("*"," ");
+                conferenceName.setText(spConfName);
+             /* } else {
+                Log.d("else name: ", aliasName);
+                conferenceName.setText(service.getConference().getAlias());
+                */
+            }
+        }
         String currentUserAttached = selectedView.getPeerId();
         Participant localUser = service.findParticipantById(localUserId);
         Participant user = service.findParticipantById(currentUserAttached);
@@ -658,6 +719,7 @@ public class VoxeetConferenceView extends AbstractVoxeetExpandableView implement
         try {
             videoStream = view.findViewById(R.id.videoStream);
             conferenceState = view.findViewById(R.id.conference_state);
+            conferenceName = view.findViewById(R.id.conference_name);
             layoutParticipant = view.findViewById(R.id.layout_participant);
 
             speakerView = view.findViewById(R.id.current_speaker_view);
@@ -685,6 +747,7 @@ public class VoxeetConferenceView extends AbstractVoxeetExpandableView implement
             participantView.setParticipantListener(this);
 
             voxeetTimer = view.findViewById(R.id.voxeet_timer);
+            voxeetTimerExpand = view.findViewById(R.id.voxeet_timer_expand);
 
             notchView = view.findViewById(R.id.notch);
 
@@ -702,6 +765,7 @@ public class VoxeetConferenceView extends AbstractVoxeetExpandableView implement
             addListener(conferenceActionBarView);
             addListener(participantView);
             addListener(voxeetTimer);
+            addListener(voxeetTimerExpand);
 
             updateUi();
         } catch (Exception e) {

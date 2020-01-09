@@ -39,6 +39,7 @@ import com.voxeet.sdk.utils.AudioType;
 import com.voxeet.sdk.utils.NoDocumentation;
 import com.voxeet.sdk.utils.ScreenHelper;
 import com.voxeet.toolkit.R;
+import com.voxeet.toolkit.activities.VoxeetEventCallBack;
 import com.voxeet.toolkit.implementation.VoxeetConferenceView;
 import com.voxeet.toolkit.implementation.overlays.OverlayState;
 import com.voxeet.toolkit.implementation.overlays.abs.AbstractVoxeetOverlayView;
@@ -87,6 +88,10 @@ public abstract class AbstractConferenceToolkitController implements VoxeetOverl
      */
     @Nullable
     private AbstractVoxeetOverlayView mMainView;
+
+
+    @Nullable
+    private VoxeetEventCallBack mVoxeetEventCallBack;
 
     //private VoxeetOverlayContainerFrameLayout mMainViewParent;
 
@@ -146,7 +151,7 @@ public abstract class AbstractConferenceToolkitController implements VoxeetOverl
 
         OverlayState state = SAVED_OVERLAY_STATE;
         mMainView = mVoxeetOverlayViewProvider.createView(activity,
-                mVoxeetSubViewProvider,
+                mVoxeetSubViewProvider,mVoxeetEventCallBack,
                 state);
 
         List<Participant> list = VoxeetSdk.conference().getLastInvitationParticipants();
@@ -234,8 +239,8 @@ public abstract class AbstractConferenceToolkitController implements VoxeetOverl
         removeRunnables.clear();
     }
 
-    public void forceReattach() {
-
+    public void forceReattach(VoxeetEventCallBack voxeetEventCallBack) {
+        mVoxeetEventCallBack = voxeetEventCallBack;
     }
 
     private boolean isInConference() {
@@ -773,7 +778,6 @@ public abstract class AbstractConferenceToolkitController implements VoxeetOverl
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(ConferenceDestroyedPush event) {
         Log.d("SoundPool", "onEvent: " + event.getClass().getSimpleName());
-
         //avoid leaving when received event for another conference
         //should not impact current flows since local events are already make the ui leave when the current user interacts in hi.er own conf
         if (!optConferenceId().equals(event.conferenceId)) {
@@ -801,7 +805,6 @@ public abstract class AbstractConferenceToolkitController implements VoxeetOverl
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(ConferenceEnded event) {
         Log.d("SoundPool", "onEvent: " + event.getClass().getSimpleName());
-
         //avoid leaving when received event for another conference
         //should not impact current flows since local events are already make the ui leave when the current user interacts in hi.er own conf
         if (!optConferenceId().equals(event.conferenceId)) {

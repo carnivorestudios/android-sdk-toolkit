@@ -13,12 +13,26 @@ import com.voxeet.promise.solve.PromiseExec;
 import com.voxeet.promise.solve.Solver;
 import com.voxeet.sdk.VoxeetSdk;
 import com.voxeet.sdk.json.ParticipantInfo;
+import com.voxeet.sdk.events.restapi.ConferenceStatusResult;
+import com.voxeet.sdk.json.UserInfo;
+import com.voxeet.sdk.models.v1.ConferenceUser;
+import com.voxeet.push.center.management.Constants;
+import com.voxeet.sdk.VoxeetSdk;
 import com.voxeet.sdk.models.Conference;
 import com.voxeet.sdk.preferences.VoxeetPreferences;
 import com.voxeet.sdk.push.center.management.Constants;
 import com.voxeet.sdk.utils.AndroidManifest;
+import com.voxeet.toolkit.controllers.VoxeetToolkit;
 import com.voxeet.toolkit.incoming.factory.IVoxeetActivity;
 import com.voxeet.toolkit.incoming.factory.IncomingCallFactory;
+
+import java.util.List;
+import java.util.Objects;
+
+import eu.codlab.simplepromise.Promise;
+import eu.codlab.simplepromise.solve.ErrorPromise;
+import eu.codlab.simplepromise.solve.PromiseExec;
+import eu.codlab.simplepromise.solve.Solver;
 
 public class IncomingBundleChecker {
 
@@ -115,12 +129,14 @@ public class IncomingBundleChecker {
                             @Override
                             public void onCall(@Nullable Boolean result, @NonNull Solver<Object> solver) {
                                 Log.d(TAG, "onCall: previous conference left, joining the new conference");
-                                solver.resolve(join.then(new PromiseExec<Conference, Object>() {
-                                    @Override
-                                    public void onCall(@Nullable Conference result, @NonNull Solver<Object> solver) {
-                                        Log.d(TAG, "onCall: resolved 1");
-                                    }
-                                }));
+
+//                                solver.resolve(join.then(new PromiseExec<Boolean, Object>() {
+//                                    @Override
+//                                    public void onCall(@Nullable Boolean result, @NonNull Solver<Object> solver) {
+//                                        Log.d(TAG, "onCall: resolved 1");
+//                                    }
+//                                }));
+
                             }
                         })
                         .error(new ErrorPromise() {
@@ -130,17 +146,70 @@ public class IncomingBundleChecker {
                             }
                         });
             } else {
-                join.then(new PromiseExec<Boolean, Object>() {
-                    @Override
-                    public void onCall(@Nullable Boolean result, @NonNull Solver<Object> solver) {
-                        Log.d(TAG, "onCall: resolved");
-                    }
-                }).error(new ErrorPromise() {
-                    @Override
-                    public void onError(@NonNull Throwable error) {
-                        error.printStackTrace();
-                    }
-                });
+                if (VoxeetSdk.conference() != null) {
+                    Promise<ConferenceStatusResult> confStatus = Objects.requireNonNull(VoxeetSdk.conference()).getConferenceStatus(mConferenceId);
+                    confStatus.then(new PromiseExec<ConferenceStatusResult, Object>() {
+                        @Override
+                        public void onCall(@Nullable ConferenceStatusResult result, @NonNull Solver<Object> solver) {
+                            Log.d(TAG, "onCall: Conference Status");
+                            if (result != null) {
+                                List<ConferenceUser> users = result.getConferenceUsers();
+                                if (users.size() > 0) {
+                                    if(VoxeetToolkit.getInstance() != null &&
+                                            VoxeetToolkit.getInstance().getConferenceToolkit()!=null &&
+                                            VoxeetSdk.conference() != null) {
+                                        join.then(new PromiseExec<Boolean, Object>() {
+                                            @Override
+                                            public void onCall(@Nullable Boolean result, @NonNull Solver<Object> solver) {
+                                                Log.d(TAG, "onCall: Conference Join");
+                                            }
+                                        }).error(new ErrorPromise() {
+                                            @Override
+                                            public void onError(@NonNull Throwable error) {
+                                                error.printStackTrace();
+                                            }
+                                        });
+                                    }
+                                } else {
+                                    VoxeetSdk.conference()
+                                            .leave()
+                                            .then(new PromiseExec<Boolean, Object>() {
+                                                @Override
+                                                public void onCall(@Nullable Boolean result, @NonNull Solver<Object> solver) {
+                                                    Log.d(TAG, "onCall: Conference Leave");
+                                                }
+                                            })
+                                            .error(new ErrorPromise() {
+                                                @Override
+                                                public void onError(Throwable error) {
+                                                    error.printStackTrace();
+                                                }
+                                            });
+                                }
+                            } else {
+                                VoxeetSdk.conference()
+                                        .leave()
+                                        .then(new PromiseExec<Boolean, Object>() {
+                                            @Override
+                                            public void onCall(@Nullable Boolean result, @NonNull Solver<Object> solver) {
+                                                Log.d(TAG, "onCall: Conference Leave");
+                                            }
+                                        })
+                                        .error(new ErrorPromise() {
+                                            @Override
+                                            public void onError(Throwable error) {
+                                                error.printStackTrace();
+                                            }
+                                        });
+                            }
+                        }
+                    }).error(new ErrorPromise() {
+                        @Override
+                        public void onError(@NonNull Throwable error) {
+                            error.printStackTrace();
+                        }
+                    });
+                }
             }
         }
     }

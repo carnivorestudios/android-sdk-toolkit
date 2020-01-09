@@ -50,7 +50,7 @@ import org.greenrobot.eventbus.ThreadMode;
  * - singleTop / singleInstance
  */
 @Annotate
-public class VoxeetAppCompatActivity extends AppCompatActivity implements IVoxeetActivity {
+public class VoxeetAppCompatActivity extends AppCompatActivity implements VoxeetEventCallBack, IVoxeetActivity {
 
     private static final String TAG = VoxeetAppCompatActivity.class.getSimpleName();
     private IncomingBundleChecker mIncomingBundleChecker;
@@ -113,9 +113,8 @@ public class VoxeetAppCompatActivity extends AppCompatActivity implements IVoxee
             VoxeetSdk.screenShare().consumeRightsToScreenShare();
         }
 
-        if (null != VoxeetToolkit.instance()) {
-            //to prevent uninitialized toolkit but ... it's highly recommended for future releases to always init
-            VoxeetToolkit.instance().getConferenceToolkit().forceReattach();
+        if (null != VoxeetToolkit.getInstance() && null != VoxeetToolkit.getInstance().getConferenceToolkit()) {
+            VoxeetToolkit.getInstance().getConferenceToolkit().forceReattach(this);
         }
 
         dismissNotification();
@@ -232,6 +231,7 @@ public class VoxeetAppCompatActivity extends AppCompatActivity implements IVoxee
 
     }
 
+
     /**
      * Get the current voxeet bundle checker
      * <p>
@@ -292,6 +292,32 @@ public class VoxeetAppCompatActivity extends AppCompatActivity implements IVoxee
 
     private void dismissNotification() {
         IncomingNotificationHelper.dismiss(this);
+    }
+
+    @Override
+    public void onConferenceMute(Boolean isMuted) {
+        Log.d(TAG, "onConferenceMute: isMuted : "+isMuted);
+    }
+
+    @Override
+    public void onConferenceVideo(Boolean isVideoEnabled) {
+        Log.d(TAG, "onConferenceVideo: isVideoEnabled : "+isVideoEnabled);
+    }
+
+    @Override
+    public void onConferenceCallEnded() {
+        Log.d(TAG, "onConferenceCallEnded:");
+    }
+
+    @Override
+    public void onConferenceMinimized() {
+        Log.d(TAG, "onConferenceMinimized:");
+    }
+
+    @Override
+    public void onConferenceSpeakerOn(Boolean isSpeakerOn) {
+        Log.d(TAG, "onConferenceSpeakerOn:"+isSpeakerOn);
+    
     }
 }
 

@@ -17,6 +17,8 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.amulyakhare.textdrawable.TextDrawable;
+import com.amulyakhare.textdrawable.util.ColorGenerator;
 import com.squareup.picasso.Picasso;
 import com.voxeet.sdk.VoxeetSdk;
 import com.voxeet.sdk.exceptions.ExceptionManager;
@@ -279,21 +281,41 @@ public class VoxeetSpeakerView extends VoxeetView {
             if (null != conferenceUser && null != conferenceUser.getInfo()) {
                 avatarUrl = conferenceUser.getInfo().getAvatarUrl();
             }
-
+            String avatarName = "";
+            if (null != conferenceUser && null != conferenceUser.getUserInfo()) {
+                avatarName = conferenceUser.getUserInfo().getName();
+            }
+            ColorGenerator generator = ColorGenerator.MATERIAL;
+            if (avatarName.length() >= 2) {
+                avatarName = avatarName.substring(0, 2);
+            } else if (avatarName.length() >= 1) {
+                avatarName = avatarName.substring(0, 1);
+            }
+            int color2 = generator.getColor(avatarName);
+            TextDrawable drawable = TextDrawable.builder()
+                    .beginConfig()
+                    .width(imageView.getWidth())  // width in px
+                    .height(imageView.getHeight()) // height in px
+                    .toUpperCase()
+                    .bold()
+                    .endConfig()
+                    .buildRect(avatarName, color2);
             if (!TextUtils.isEmpty(avatarUrl)) {
+//                imageView.setImageDrawable(drawable);
                 Picasso.get()
                         .load(conferenceUser.getInfo().getAvatarUrl())
                         .noFade()
                         .resize(avatarSize, avatarSize)
-                        .placeholder(R.drawable.default_avatar)
-                        .error(R.drawable.default_avatar)
+                        .placeholder(drawable)
+                        .error(drawable)
                         .into(imageView);
             } else {
-                Picasso.get()
-                        .load(R.drawable.default_avatar)
-                        .noFade()
-                        .resize(avatarSize, avatarSize)
-                        .into(imageView);
+//                Picasso.get()
+//                        .load(R.drawable.default_avatar)
+//                        .noFade()
+//                        .resize(avatarSize, avatarSize)
+//                        .into(imageView);
+                imageView.setImageDrawable(drawable);
             }
         } catch (Exception e) {
             ExceptionManager.sendException(e);
@@ -357,6 +379,31 @@ public class VoxeetSpeakerView extends VoxeetView {
 
         handler.post(updateSpeakerRunnable);
         handler.post(updateVuMeterRunnable);
+    }
+
+    @Override
+    public void onConferenceMute(Boolean isMuted) {
+
+    }
+
+    @Override
+    public void onConferenceVideo(Boolean isVideoEnabled) {
+
+    }
+
+    @Override
+    public void onConferenceCallEnded() {
+
+    }
+
+    @Override
+    public void onConferenceMinimized() {
+
+    }
+
+    @Override
+    public void onConferenceSpeakerOn(Boolean isSpeakerOn) {
+
     }
 
     /**
